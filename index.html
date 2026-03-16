@@ -200,7 +200,15 @@ function App() {
 
   useEffect(() => {
     const handleMessage = (event) => {
-      const msg = event?.data;
+      let msg = event?.data;
+
+      try {
+        if (typeof msg === "string") {
+          msg = JSON.parse(msg);
+        }
+      } catch (err) {
+        console.warn("Antwort von Wix konnte nicht geparst werden:", err, event?.data);
+      }
 
       if (!msg || !msg.type) return;
 
@@ -236,7 +244,7 @@ function App() {
     window.addEventListener("message", handleMessage);
 
     try {
-      const readyMsg = { type: "POLSTER24_HTML_READY", source: "polster24-konfigurator" };
+      const readyMsg = JSON.stringify({ type: "POLSTER24_READY", source: "polster24-konfigurator" });
       if (window.parent && window.parent !== window) {
         window.parent.postMessage(readyMsg, "*");
       }
@@ -546,12 +554,17 @@ function App() {
               throw new Error("Der Konfigurator läuft nicht in einer Wix-HTML-Komponente.");
             }
 
-            const message = {
+            const message = JSON.stringify({
               type:"POLSTER24_ADD_TO_CART",
               source:"polster24-konfigurator",
               sentAt: Date.now(),
-              data: cartData
-            };
+              data: {
+                ...cartData,
+                fabric: cartData.fabric ? { name: cartData.fabric.name } : null,
+                foam: cartData.foam ? { name: cartData.foam.name } : null,
+                extras: Array.isArray(cartData.extras) ? cartData.extras : []
+              }
+            });
 
             window.parent.postMessage(message, "*");
             console.log("✓ postMessage an Parent Window gesendet");
