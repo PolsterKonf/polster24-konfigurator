@@ -465,42 +465,20 @@ function App() {
           image:       FORM_IMAGES[formId],  // Base64 Bild der gewählten Form
         };
 
-        const CART_PAGE_PATH = "/warenkorb"; // Falls dein Slug anders heißt, hier ändern.
-
         const handleAddToCart = () => {
           console.log("🛒 IN DEN WARENKORB GEKLICKT");
           console.log("CartData:", JSON.stringify({
             form: cartData.form,
             total: cartData.total,
             fabric: cartData.fabric?.name,
-            foam: cartData.foam?.name,
           }));
-
           try {
-            const encodedConfig = encodeURIComponent(JSON.stringify(cartData));
-            const targetUrl = `${CART_PAGE_PATH}?polsterConfig=${encodedConfig}`;
-
-            // Zusätzliche Nachricht an Wix-Seitencode, falls du dort später noch etwas abfangen willst
-            try {
-              window.parent.postMessage({ type:"POLSTER24_ADD_TO_CART", data:cartData, targetUrl }, "*");
-              window.top?.postMessage({ type:"POLSTER24_ADD_TO_CART", data:cartData, targetUrl }, "*");
-              console.log("✓ postMessage an Parent/Top gesendet");
-            } catch(msgErr) {
-              console.warn("postMessage nicht möglich:", msgErr);
-            }
-
-            // Direkte Weiterleitung auf die Wix-Warenkorbseite – komplett ohne fetch
-            if (window.top && window.top !== window.self) {
-              window.top.location.href = targetUrl;
-            } else {
-              window.location.href = targetUrl;
-            }
-
-            setSuccess(true);
+            window.parent.postMessage({type:"POLSTER24_ADD_TO_CART", data:cartData}, "*");
+            console.log("✓ postMessage gesendet an:", window.parent === window ? "KEIN PARENT (kein iFrame!)" : "Parent Window");
           } catch(e) {
-            console.error("✗ Weiterleitung zum Warenkorb fehlgeschlagen:", e);
-            alert("Fehler beim Übertragen der Konfiguration.");
+            console.error("✗ postMessage Fehler:", e);
           }
+          setSuccess(true);
         };
         return React.createElement('div',null,
           React.createElement(SH,{n:6,
@@ -614,7 +592,7 @@ function App() {
           ),
           React.createElement('div',{style:{fontSize:11,color:C.mid,textAlign:"center",marginTop:"0.8rem"}}),
           React.createElement(Tip,null,
-            "Nach dem Klick wirst du direkt auf deine Wix-Warenkorbseite weitergeleitet. Die komplette Konfiguration wird dabei per URL übergeben – ohne fetch."
+            "Du wirst nach dem Klick zum Wix-Warenkorb weitergeleitet, wo du Lieferadresse und Zahlung eingibst."
           )
         );
       }
