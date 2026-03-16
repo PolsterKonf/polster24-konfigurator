@@ -467,7 +467,18 @@ function App() {
         };
 
         const handleAddToCart = () => {
-          window.parent.postMessage({type:"POLSTER24_ADD_TO_CART", data:cartData}, "*");
+          console.log("🛒 IN DEN WARENKORB GEKLICKT");
+          console.log("CartData:", JSON.stringify({
+            form: cartData.form,
+            total: cartData.total,
+            fabric: cartData.fabric?.name,
+          }));
+          try {
+            window.parent.postMessage({type:"POLSTER24_ADD_TO_CART", data:cartData}, "*");
+            console.log("✓ postMessage gesendet an:", window.parent === window ? "KEIN PARENT (kein iFrame!)" : "Parent Window");
+          } catch(e) {
+            console.error("✗ postMessage Fehler:", e);
+          }
           setSuccess(true);
         };
         return React.createElement('div',null,
