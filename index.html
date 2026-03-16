@@ -20,6 +20,25 @@ input[type=number]{-moz-appearance:textfield}
 <body>
 <div id="root"></div>
 <script type="text/babel" data-presets="react">
+
+  window.addEventListener("message", (event) => {
+
+  let msg;
+
+  try {
+    msg = typeof event.data === "string"
+      ? JSON.parse(event.data)
+      : event.data;
+  } catch {
+    return;
+  }
+
+  if (msg?.type === "POLSTER24_CART_SUCCESS") {
+    console.log("✓ Wix bestätigt Warenkorb");
+    setSuccess(true);
+  }
+
+});
 const { useState, useMemo } = React;
 
 const C = {
@@ -467,19 +486,29 @@ function App() {
         };
 
         const handleAddToCart = () => {
+
   console.log("🛒 IN DEN WARENKORB GEKLICKT");
 
-  const msg = {
+  const payload = {
     type: "POLSTER24_ADD_TO_CART",
     data: cartData
   };
 
   try {
-    window.parent.postMessage(JSON.stringify(msg), "*");
-    console.log("✓ Nachricht an Parent gesendet");
+
+    const message = JSON.stringify(payload);
+
+    if (window.parent && window.parent !== window) {
+      window.parent.postMessage(message, "*");
+      console.log("✓ Nachricht an Parent gesendet");
+    } else {
+      console.warn("⚠ Kein Parent Window gefunden (kein Wix iframe)");
+    }
+
   } catch (err) {
-    console.error("Fehler beim Senden:", err);
+    console.error("✗ postMessage Fehler:", err);
   }
+
 };
         return React.createElement('div',null,
           React.createElement(SH,{n:6,
