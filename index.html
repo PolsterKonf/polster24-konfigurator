@@ -467,13 +467,33 @@ function App() {
         };
 
         const handleAddToCart = () => {
-          console.log("🛒 IN DEN WARENKORB GEKLICKT");
-          const msg = {type:"POLSTER24_ADD_TO_CART", data:cartData};
-          // Direkt als postMessage - Wix empfängt es als JSON-String
-          window.parent.postMessage(msg, "*");
-          console.log("✓ Gesendet");
-          setSuccess(true);
-        };
+  console.log("🛒 IN DEN WARENKORB GEKLICKT");
+
+  const msg = {
+    type: "POLSTER24_ADD_TO_CART",
+    data: cartData
+  };
+
+  try {
+    // Für Wix am robustesten: JSON-String senden
+    const payload = JSON.stringify(msg);
+
+    if (window.parent && typeof window.parent.postMessage === "function") {
+      window.parent.postMessage(payload, "*");
+      console.log("✓ Nachricht an Parent gesendet");
+    } else if (typeof window.postMessage === "function") {
+      window.postMessage(payload, "*");
+      console.log("✓ Nachricht an Window gesendet");
+    } else {
+      throw new Error("postMessage ist in diesem Kontext nicht verfügbar.");
+    }
+
+    setSuccess(true);
+  } catch (err) {
+    console.error("Fehler beim Senden an Wix:", err);
+    alert("Die Konfiguration konnte nicht an Wix übergeben werden.");
+  }
+};
         return React.createElement('div',null,
           React.createElement(SH,{n:6,
             title:React.createElement('span',null,"Deine Konfiguration",React.createElement('br'),React.createElement('em',{style:{color:C.sand,fontStyle:"italic"}},"im Überblick.")),
