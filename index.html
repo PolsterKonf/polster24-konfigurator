@@ -3,79 +3,62 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Minimaler Wix Test</title>
+<title>Wix Heartbeat Test</title>
 <style>
-body{
-  font-family: Arial, sans-serif;
-  padding:20px;
-  background:#f5f5f5;
-}
-button{
-  padding:12px 16px;
-  font-size:16px;
-  cursor:pointer;
-}
-#log{
-  margin-top:16px;
-  background:white;
-  border:1px solid #ccc;
-  padding:12px;
-  white-space:pre-wrap;
-  font-size:14px;
-}
+body{font-family:Arial,sans-serif;padding:20px;background:#f5f5f5}
+button{padding:12px 16px;font-size:16px;cursor:pointer;margin-right:8px}
+#log{margin-top:16px;background:#fff;border:1px solid #ccc;padding:12px;white-space:pre-wrap;font-size:14px;max-height:320px;overflow:auto}
+.badge{display:inline-block;padding:4px 8px;background:#eee;border-radius:6px;margin-bottom:10px}
 </style>
 </head>
-
 <body>
-
-<button id="sendBtn">Testnachricht senden</button>
-
+<div class="badge" id="status">Startet…</div><br/>
+<button id="sendBtn">Klick senden</button>
+<button id="pingBtn">Ping senden</button>
 <div id="log">HTML geladen...\n</div>
 
 <script>
-
 const logEl = document.getElementById("log");
+const statusEl = document.getElementById("status");
+let seq = 0;
 
 function log(msg){
   console.log(msg);
   logEl.textContent += msg + "\n";
+  logEl.scrollTop = logEl.scrollHeight;
 }
 
-function send(payload){
+function send(type, extra = {}){
+  seq += 1;
+  const payload = { type, seq, source: "heartbeat-test", ts: Date.now(), ...extra };
   const message = JSON.stringify(payload);
-  window.parent.postMessage(message,"*");
+  window.parent.postMessage(message, "*");
   log("GESENDET: " + message);
 }
 
-window.addEventListener("message",(event)=>{
+window.addEventListener("message", (event) => {
   log("VON WIX: " + JSON.stringify(event.data));
+  statusEl.textContent = "Antwort von Wix empfangen";
 });
 
 window.onload = function(){
+  statusEl.textContent = "Fenster geladen";
   log("Fenster geladen");
-
-  send({
-    type:"POLSTER24_READY",
-    source:"minimal-parent-only"
-  });
+  send("POLSTER24_READY");
+  setInterval(() => send("POLSTER24_HEARTBEAT"), 1500);
 };
 
 document.getElementById("sendBtn").onclick = function(){
-
-  send({
-    type:"POLSTER24_ADD_TO_CART",
-    source:"minimal-parent-only",
-    data:{
-      form:"Testform",
-      total:12.34,
-      fabric:"Teststoff",
-      foam:"Testschaum"
-    }
+  statusEl.textContent = "Klick ausgelöst";
+  send("POLSTER24_ADD_TO_CART", {
+    data: { form: "Testform", total: 12.34, fabric: "Teststoff", foam: "Testschaum" }
   });
-
 };
 
+document.getElementById("pingBtn").onclick = function(){
+  statusEl.textContent = "Ping ausgelöst";
+  send("POLSTER24_PING");
+};
 </script>
-
 </body>
 </html>
