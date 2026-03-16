@@ -23,9 +23,6 @@ input[type=number]{-moz-appearance:textfield}
 <script type="text/babel" data-presets="react">
 const { useState, useMemo, useEffect } = React;
 
-console.log("HTML VERSION TEST 12345");
-alert("HTML VERSION TEST 12345");
-
 const C = {
   linen:"#F5F0E8",linen2:"#EDE7D9",bark:"#2B2318",bark2:"#4A3D2F",
   moss:"#4C5E48",sand:"#B89B72",sand2:"#D4B98A",chalk:"#FDFAF5",mid:"#8A7D6A",
@@ -189,11 +186,13 @@ function App() {
   const [fabFilter, setFabFilter]= useState("alle");
   const [extras,    setExtras]   = useState({rz:true});
   const [success,   setSuccess]  = useState(false);
-  const [order,     setOrder]    = useState({fn:"",ln:"",email:"",phone:"",addr:"",pay:"",note:""});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMsg,  setErrorMsg] = useState("");
 
   useEffect(() => {
     const onMessage = (event) => {
       let msg = event.data;
+
       try {
         msg = typeof msg === "string" ? JSON.parse(msg) : msg;
       } catch (_) {
@@ -202,12 +201,15 @@ function App() {
 
       if (msg?.type === "POLSTER24_CART_SUCCESS") {
         console.log("✓ Wix bestätigt Warenkorb");
+        setIsSubmitting(false);
+        setErrorMsg("");
         setSuccess(true);
       }
 
       if (msg?.type === "POLSTER24_CART_ERROR") {
         console.error("✗ Wix meldet Fehler:", msg.error || "Unbekannter Fehler");
-        alert(msg.error || "Beim Hinzufügen zum Warenkorb ist ein Fehler aufgetreten.");
+        setIsSubmitting(false);
+        setErrorMsg(msg.error || "Beim Hinzufügen zum Warenkorb ist ein Fehler aufgetreten.");
       }
     };
 
@@ -233,10 +235,16 @@ function App() {
     const waddingCost = extras.watt ? Math.round(8*surface*100)/100 : 0;
     const otherExtras = EXTRAS.filter(e=>e.id!=="watt"&&e.id!=="trik"&&extras[e.id]).reduce((s,e)=>s+e.price,0);
     const total = fabricCost+foamCost+jerseyCost+waddingCost+otherExtras;
-    return {fabric:fabricCost,foam:foamCost,jersey:jerseyCost,wadding:waddingCost,
-      extras:otherExtras,total:Math.round(total*100)/100,
+    return {
+      fabric:fabricCost,
+      foam:foamCost,
+      jersey:jerseyCost,
+      wadding:waddingCost,
+      extras:otherExtras,
+      total:Math.round(total*100)/100,
       surface:Math.round(surface*1000)/1000,
-      volume:Math.round(volume*1000000)/10};
+      volume:Math.round(volume*1000000)/10
+    };
   },[dims.a,dims.b,dims.c,fab,foamKey,extras,cf]);
 
   const shipping = prices.total>0 ? (prices.total>=89?0:4.50) : 0;
@@ -244,6 +252,28 @@ function App() {
   const canNext = [true,dimsOK,!!fabric,true,true,true];
   const go=n=>{if(n>=0&&n<=5)setStep(n);};
   const setDim=(k,v)=>setDims(d=>({...d,[k]:v}));
+
+  const sendToWix = (payload) => {
+    const message = JSON.stringify(payload);
+
+    try {
+      if (window.parent && typeof window.parent.postMessage === "function") {
+        window.parent.postMessage(message, "*");
+        console.log("✓ Nachricht an parent gesendet");
+      }
+    } catch (err) {
+      console.warn("parent.postMessage fehlgeschlagen:", err);
+    }
+
+    try {
+      if (window.top && window.top !== window.parent && typeof window.top.postMessage === "function") {
+        window.top.postMessage(message, "*");
+        console.log("✓ Nachricht an top gesendet");
+      }
+    } catch (err) {
+      console.warn("top.postMessage fehlgeschlagen:", err);
+    }
+  };
 
   const renderStep=()=>{
     switch(step){
@@ -463,27 +493,31 @@ function App() {
         ].filter(l=>l!=="").join("\n");
 
         const cartData = {
-          form:        cf.label,
-          formId:      formId,
-          dims:        dims,
-          fabric:      fab ? {id:fabric, name:fab.n, price:fab.p} : null,
-          foam:        {id:foamKey, name:foam.name, density:foam.density},
-          extras:      extraLabels,
-          prices:      prices,
-          total:       Math.round((prices.total + shipping)*100)/100,
-          shipping:    shipping,
+          form: cf.label,
+          formId: formId,
+          dims: dims,
+          fabric: fab ? {id:fabric, name:fab.n, price:fab.p} : null,
+          foam: {id:foamKey, name:foam.name, density:foam.density},
+          extras: extraLabels,
+          prices: prices,
+          total: Math.round((prices.total + shipping)*100)/100,
+          shipping: shipping,
           beschreibung: beschreibung,
-          image:       FORM_IMAGES[formId],
+          image: FORM_IMAGES[formId],
         };
 
         const handleAddToCart = () => {
+          if (isSubmitting) return;
+
+          setIsSubmitting(true);
+          setErrorMsg("");
+
           console.log("🛒 IN DEN WARENKORB GEKLICKT");
-          alert("SENDE POLSTER24_ADD_TO_CART");
 
           const payload = {
             type: "POLSTER24_ADD_TO_CART",
             data: cartData
-          };;
+          };
 
           console.log("CartData:", JSON.stringify({
             form: cartData.form,
@@ -491,24 +525,24 @@ function App() {
             fabric: cartData.fabric?.name,
           }));
 
-          try {
-            const message = JSON.stringify(payload);
-
-            if (window.parent && window.parent !== window) {
-              window.top.postMessage(message, "*");
-              console.log("✓ Nachricht an Parent gesendet:", message);
-            } else {
-              console.warn("⚠ Kein Parent Window gefunden (kein Wix iframe)");
-            }
-          } catch (e) {
-            console.error("✗ postMessage Fehler:", e);
-          }
+          sendToWix(payload);
         };
 
         return React.createElement('div',null,
           React.createElement(SH,{n:6,
             title:React.createElement('span',null,"Deine Konfiguration",React.createElement('br'),React.createElement('em',{style:{color:C.sand,fontStyle:"italic"}},"im Überblick.")),
             sub:"Alles korrekt? Dann füge dein individuelles Polster dem Warenkorb hinzu."}),
+
+          errorMsg && React.createElement('div',{
+            style:{
+              background:"#f8e7e7",
+              border:"1px solid #d8aaaa",
+              color:"#7a2f2f",
+              padding:"12px 14px",
+              marginBottom:"1rem",
+              fontSize:13
+            }
+          }, errorMsg),
 
           React.createElement('div',{style:{background:C.chalk,border:"1px solid rgba(184,155,114,.2)",
             marginBottom:"1.5rem"}},
@@ -601,16 +635,17 @@ function App() {
 
           React.createElement('button',{
             onClick: handleAddToCart,
-            style:{width:"100%",background:C.sand,color:C.bark,border:"none",
-              padding:"18px 32px",fontSize:15,fontWeight:600,cursor:"pointer",
+            disabled: isSubmitting,
+            style:{width:"100%",background:isSubmitting?C.mid:C.sand,color:C.bark,border:"none",
+              padding:"18px 32px",fontSize:15,fontWeight:600,cursor:isSubmitting?"not-allowed":"pointer",
               letterSpacing:"0.1em",textTransform:"uppercase",
               display:"flex",alignItems:"center",justifyContent:"center",gap:10}},
             React.createElement('span',null,"🛒"),
-            "In den Warenkorb"
+            isSubmitting ? "Wird verarbeitet..." : "In den Warenkorb"
           ),
           React.createElement('div',{style:{fontSize:11,color:C.mid,textAlign:"center",marginTop:"0.8rem"}}),
           React.createElement(Tip,null,
-            "Du wirst nach dem Klick zum Wix-Warenkorb weitergeleitet, wo du Lieferadresse und Zahlung eingibst."
+            "Du wirst nach erfolgreichem Hinzufügen im Wix-Warenkorb weiterarbeiten."
           )
         );
       }
@@ -637,8 +672,17 @@ function App() {
               "Dein individuelles Polster wurde erfolgreich in den Warenkorb gelegt."
             ),
             React.createElement('button',{
-              onClick:()=>{setSuccess(false);setStep(0);setFormId("rechteck");setDims({});
-                setFabric(null);setFoamKey("none");setExtras({rz:true});setOrder({});},
+              onClick:()=>{
+                setSuccess(false);
+                setStep(0);
+                setFormId("rechteck");
+                setDims({});
+                setFabric(null);
+                setFoamKey("none");
+                setExtras({rz:true});
+                setErrorMsg("");
+                setIsSubmitting(false);
+              },
               style:{background:C.bark,color:C.chalk,padding:"12px 32px",border:"none",
                 cursor:"pointer",fontSize:12,letterSpacing:"0.1em",textTransform:"uppercase"}},
               "Neue Konfiguration starten"
