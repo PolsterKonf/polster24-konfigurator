@@ -495,7 +495,7 @@ function App() {
             const message = JSON.stringify(payload);
 
             if (window.parent && window.parent !== window) {
-              window.parent.postMessage(message, "*");
+              window.top.postMessage(message, "*");
               console.log("✓ Nachricht an Parent gesendet:", message);
             } else {
               console.warn("⚠ Kein Parent Window gefunden (kein Wix iframe)");
