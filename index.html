@@ -19,8 +19,12 @@ input[type=number]{-moz-appearance:textfield}
 </head>
 <body>
 <div id="root"></div>
+
 <script type="text/babel" data-presets="react">
 const { useState, useMemo, useEffect } = React;
+
+console.log("HTML VERSION TEST 12345");
+alert("HTML VERSION TEST 12345");
 
 const C = {
   linen:"#F5F0E8",linen2:"#EDE7D9",bark:"#2B2318",bark2:"#4A3D2F",
@@ -39,8 +43,6 @@ const FOAM_TYPES = {
   "hr_45_50":  {name:"HR Kaltschaum 45/50 H4",   density:45},
 };
 
-// a=Dicke, b=Länge, c=Breite IMMER (Pflicht, Rechteck-Kalkulation)
-// d,e,f = nur wenn in DB-Tabelle vorhanden → nur für Fertigung anzeigen
 const FORMS = [
   {id:"rechteck",             label:"Rechteck – Würfel",                    foamFactor:1,    sides:["a","b","c"]            },
   {id:"rechteck-schraeg",     label:"Rechteck mit Schrägabschnitt",         foamFactor:1.2,  sides:["a","b","c","d","e"]    },
@@ -476,6 +478,7 @@ function App() {
 
         const handleAddToCart = () => {
           console.log("🛒 IN DEN WARENKORB GEKLICKT");
+          alert("SENDE POLSTER24_ADD_TO_CART");
 
           const payload = {
             type: "POLSTER24_ADD_TO_CART",
@@ -493,7 +496,7 @@ function App() {
 
             if (window.parent && window.parent !== window) {
               window.parent.postMessage(message, "*");
-              console.log("✓ Nachricht an Parent gesendet");
+              console.log("✓ Nachricht an Parent gesendet:", message);
             } else {
               console.warn("⚠ Kein Parent Window gefunden (kein Wix iframe)");
             }
@@ -728,8 +731,8 @@ function App() {
           )
         )
       )
-      )
-    );
+    )
+  );
 }
 
 ReactDOM.createRoot(document.getElementById("root")).render(React.createElement(App));
