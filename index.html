@@ -20,7 +20,7 @@ input[type=number]{-moz-appearance:textfield}
 <body>
 <div id="root"></div>
 <script type="text/babel" data-presets="react">
-const { useState, useMemo } = React;
+const { useState, useMemo, useEffect } = React;
 
 const C = {
   linen:"#F5F0E8",linen2:"#EDE7D9",bark:"#2B2318",bark2:"#4A3D2F",
@@ -192,7 +192,34 @@ function App() {
   const [fabFilter, setFabFilter]= useState("alle");
   const [extras,    setExtras]   = useState({rz:true});
   const [success,   setSuccess]  = useState(false);
+  const [loading,   setLoading]  = useState(false);
+  const [error,     setError]    = useState("");
   const [order,     setOrder]    = useState({fn:"",ln:"",email:"",phone:"",addr:"",pay:"",note:""});
+
+  useEffect(() => {
+    const handleMessage = (event) => {
+      const msg = event?.data;
+
+      if (!msg || !msg.type) return;
+
+      if (msg.type === "ADD_TO_CART_SUCCESS") {
+        console.log("✓ Wix bestätigt den Warenkorb:", msg);
+        setSuccess(true);
+        setError("");
+        setLoading(false);
+      }
+
+      if (msg.type === "ADD_TO_CART_ERROR") {
+        console.error("✗ Wix Fehler:", msg.message);
+        setSuccess(false);
+        setError(msg.message || "Fehler beim Hinzufügen zum Warenkorb.");
+        setLoading(false);
+      }
+    };
+
+    window.addEventListener("message", handleMessage);
+    return () => window.removeEventListener("message", handleMessage);
+  }, []);
 
   const cf  = FORMS.find(f=>f.id===formId)||FORMS[0];
   const foam= FOAM_TYPES[foamKey];
@@ -472,13 +499,23 @@ function App() {
             total: cartData.total,
             fabric: cartData.fabric?.name,
           }));
+
+          setLoading(true);
+          setError("");
+          setSuccess(false);
+
           try {
+            if (!window.parent || window.parent === window) {
+              throw new Error("Der Konfigurator läuft nicht in einer Wix-HTML-Komponente.");
+            }
+
             window.parent.postMessage({type:"POLSTER24_ADD_TO_CART", data:cartData}, "*");
-            console.log("✓ postMessage gesendet an:", window.parent === window ? "KEIN PARENT (kein iFrame!)" : "Parent Window");
+            console.log("✓ postMessage gesendet an Parent Window");
           } catch(e) {
             console.error("✗ postMessage Fehler:", e);
+            setLoading(false);
+            setError(e?.message || "Konfiguration konnte nicht an Wix übertragen werden.");
           }
-          setSuccess(true);
         };
         return React.createElement('div',null,
           React.createElement(SH,{n:6,
@@ -580,19 +617,40 @@ function App() {
             )
           ),
 
+          error && React.createElement('div',{style:{
+            marginBottom:"1rem",
+            padding:"12px 14px",
+            background:"rgba(165, 44, 44, 0.08)",
+            border:"1px solid rgba(165, 44, 44, 0.18)",
+            color:"#8B2E2E",
+            fontSize:13,
+            lineHeight:1.5
+          }}, error),
+
+          loading && React.createElement('div',{style:{
+            marginBottom:"1rem",
+            padding:"12px 14px",
+            background:"rgba(76,94,72,.08)",
+            border:"1px solid rgba(76,94,72,.16)",
+            color:C.moss,
+            fontSize:13,
+            lineHeight:1.5
+          }}, "Produkt wird in den Warenkorb gelegt …"),
+
           // In den Warenkorb Button
           React.createElement('button',{
             onClick: handleAddToCart,
-            style:{width:"100%",background:C.sand,color:C.bark,border:"none",
-              padding:"18px 32px",fontSize:15,fontWeight:600,cursor:"pointer",
+            disabled: loading,
+            style:{width:"100%",background:loading?"rgba(184,155,114,.55)":C.sand,color:C.bark,border:"none",
+              padding:"18px 32px",fontSize:15,fontWeight:600,cursor:loading?"wait":"pointer",
               letterSpacing:"0.1em",textTransform:"uppercase",
               display:"flex",alignItems:"center",justifyContent:"center",gap:10}},
-            React.createElement('span',null,"🛒"),
-            "In den Warenkorb"
+            React.createElement('span',null,loading ? "…" : "🛒"),
+            loading ? "Wird hinzugefügt …" : "In den Warenkorb"
           ),
           React.createElement('div',{style:{fontSize:11,color:C.mid,textAlign:"center",marginTop:"0.8rem"}}),
           React.createElement(Tip,null,
-            "Du wirst nach dem Klick zum Wix-Warenkorb weitergeleitet, wo du Lieferadresse und Zahlung eingibst."
+            "Der Konfigurator wartet jetzt auf die Rückmeldung von Wix und zeigt erst dann Erfolg oder Fehler an."
           )
         );
       }
@@ -619,8 +677,8 @@ function App() {
               "Dein individuelles Polster wurde erfolgreich in den Warenkorb gelegt."
             ),
             React.createElement('button',{
-              onClick:()=>{setSuccess(false);setStep(0);setFormId("rechteck");setDims({});
-                setFabric(null);setFoamKey("none");setExtras({rz:true});setOrder({});},
+              onClick:()=>{setSuccess(false);setLoading(false);setError("");setStep(0);setFormId("rechteck");setDims({});
+                setFabric(null);setFoamKey("none");setExtras({rz:true});setOrder({fn:"",ln:"",email:"",phone:"",addr:"",pay:"",note:""});},
               style:{background:C.bark,color:C.chalk,padding:"12px 32px",border:"none",
                 cursor:"pointer",fontSize:12,letterSpacing:"0.1em",textTransform:"uppercase"}},
               "Neue Konfiguration starten"
