@@ -467,32 +467,29 @@ function App() {
         };
 
         const handleAddToCart = () => {
+
   console.log("🛒 IN DEN WARENKORB GEKLICKT");
 
-  const msg = {
+  const payload = {
     type: "POLSTER24_ADD_TO_CART",
     data: cartData
   };
 
   try {
-    // Für Wix am robustesten: JSON-String senden
-    const payload = JSON.stringify(msg);
 
-    if (window.parent && typeof window.parent.postMessage === "function") {
-      window.parent.postMessage(payload, "*");
-      console.log("✓ Nachricht an Parent gesendet");
-    } else if (typeof window.postMessage === "function") {
-      window.postMessage(payload, "*");
-      console.log("✓ Nachricht an Window gesendet");
-    } else {
-      throw new Error("postMessage ist in diesem Kontext nicht verfügbar.");
-    }
+    window.parent.postMessage(
+      JSON.stringify(payload),
+      "*"
+    );
 
-    setSuccess(true);
+    console.log("✓ Nachricht an Parent gesendet");
+
   } catch (err) {
-    console.error("Fehler beim Senden an Wix:", err);
-    alert("Die Konfiguration konnte nicht an Wix übergeben werden.");
+
+    console.error("Fehler beim Senden:", err);
+
   }
+
 };
         return React.createElement('div',null,
           React.createElement(SH,{n:6,
