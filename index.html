@@ -195,6 +195,8 @@ function App() {
   const [loading,   setLoading]  = useState(false);
   const [error,     setError]    = useState("");
   const [order,     setOrder]    = useState({fn:"",ln:"",email:"",phone:"",addr:"",pay:"",note:""});
+  const [debugMsg,  setDebugMsg] = useState("Bereit.");
+  const responseTimeoutRef = React.useRef(null);
 
   useEffect(() => {
     const handleMessage = (event) => {
@@ -202,11 +204,24 @@ function App() {
 
       if (!msg || !msg.type) return;
 
+      console.log("📩 Nachricht VON Wix empfangen:", msg);
+
+      if (responseTimeoutRef.current) {
+        clearTimeout(responseTimeoutRef.current);
+        responseTimeoutRef.current = null;
+      }
+
+      if (msg.type === "PING_BACK") {
+        setDebugMsg("Verbindung zu Wix-Seitencode steht.");
+        return;
+      }
+
       if (msg.type === "ADD_TO_CART_SUCCESS") {
         console.log("✓ Wix bestätigt den Warenkorb:", msg);
         setSuccess(true);
         setError("");
         setLoading(false);
+        setDebugMsg("Produkt wurde von Wix bestätigt und in den Warenkorb gelegt.");
       }
 
       if (msg.type === "ADD_TO_CART_ERROR") {
@@ -214,11 +229,31 @@ function App() {
         setSuccess(false);
         setError(msg.message || "Fehler beim Hinzufügen zum Warenkorb.");
         setLoading(false);
+        setDebugMsg("Wix hat einen Fehler zurückgegeben.");
       }
     };
 
     window.addEventListener("message", handleMessage);
-    return () => window.removeEventListener("message", handleMessage);
+
+    try {
+      const readyMsg = { type: "POLSTER24_HTML_READY", source: "polster24-konfigurator" };
+      if (window.parent && window.parent !== window) {
+        window.parent.postMessage(readyMsg, "*");
+      }
+      if (window.top && window.top !== window && window.top !== window.parent) {
+        window.top.postMessage(readyMsg, "*");
+      }
+      console.log("🚀 READY-Signal an Wix gesendet");
+    } catch (e) {
+      console.warn("READY-Signal konnte nicht gesendet werden:", e);
+    }
+
+    return () => {
+      if (responseTimeoutRef.current) {
+        clearTimeout(responseTimeoutRef.current);
+      }
+      window.removeEventListener("message", handleMessage);
+    };
   }, []);
 
   const cf  = FORMS.find(f=>f.id===formId)||FORMS[0];
@@ -498,26 +533,61 @@ function App() {
             form: cartData.form,
             total: cartData.total,
             fabric: cartData.fabric?.name,
+            foam: cartData.foam?.name
           }));
 
           setLoading(true);
           setError("");
           setSuccess(false);
+          setDebugMsg("Sende Konfiguration an Wix ...");
 
           try {
             if (!window.parent || window.parent === window) {
               throw new Error("Der Konfigurator läuft nicht in einer Wix-HTML-Komponente.");
             }
 
-            window.parent.postMessage({type:"POLSTER24_ADD_TO_CART", data:cartData}, "*");
-            console.log("✓ postMessage gesendet an Parent Window");
+            const message = {
+              type:"POLSTER24_ADD_TO_CART",
+              source:"polster24-konfigurator",
+              sentAt: Date.now(),
+              data: cartData
+            };
+
+            window.parent.postMessage(message, "*");
+            console.log("✓ postMessage an Parent Window gesendet");
+
+            if (window.top && window.top !== window && window.top !== window.parent) {
+              window.top.postMessage(message, "*");
+              console.log("✓ postMessage zusätzlich an Top Window gesendet");
+            }
+
+            responseTimeoutRef.current = setTimeout(() => {
+              console.warn("⌛ Keine Antwort vom Wix-Seitencode erhalten");
+              setLoading(false);
+              setError("Keine Antwort vom Wix-Seitencode erhalten. Bitte prüfe im Wix-Editor die HTML-Komponente-ID '#konfigurator' und den onMessage-Listener.");
+              setDebugMsg("Es kam keine Rückmeldung von Wix.");
+            }, 8000);
           } catch(e) {
             console.error("✗ postMessage Fehler:", e);
             setLoading(false);
             setError(e?.message || "Konfiguration konnte nicht an Wix übertragen werden.");
+            setDebugMsg("Senden an Wix fehlgeschlagen.");
           }
         };
         return React.createElement('div',null,
+          React.createElement('div',{style:{
+            background:"rgba(76,94,72,.08)",
+            border:"1px solid rgba(76,94,72,.18)",
+            color:C.bark2,
+            borderRadius:14,
+            padding:"0.9rem 1rem",
+            marginBottom:"1rem",
+            fontSize:13,
+            lineHeight:1.45
+          }},
+            React.createElement('strong',null,"Status: "),
+            debugMsg
+          ),
           React.createElement(SH,{n:6,
             title:React.createElement('span',null,"Deine Konfiguration",React.createElement('br'),React.createElement('em',{style:{color:C.sand,fontStyle:"italic"}},"im Überblick.")),
             sub:"Alles korrekt? Dann füge dein individuelles Polster dem Warenkorb hinzu."}),
