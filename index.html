@@ -1,133 +1,745 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Polster-Konfigurator – Wix Fetch Version</title>
-  <style>
-    body{font-family:Arial,sans-serif;background:#f6f6f6;margin:0;padding:24px;color:#222}
-    .wrap{max-width:860px;margin:0 auto;background:#fff;border:1px solid #ddd;border-radius:12px;padding:24px}
-    h1{margin-top:0}
-    label{display:block;font-weight:bold;margin-top:14px;margin-bottom:6px}
-    input,select,textarea{width:100%;padding:10px;border:1px solid #bbb;border-radius:8px;box-sizing:border-box}
-    button{margin-top:20px;padding:12px 18px;border:0;border-radius:10px;background:#222;color:#fff;cursor:pointer}
-    #log{margin-top:20px;border:1px solid #ddd;background:#fafafa;padding:12px;border-radius:8px;white-space:pre-wrap;font-size:14px}
-  </style>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Polster24 – Konfigurator</title>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body,#root{height:100%;width:100%}
+body{font-family:'Segoe UI',sans-serif;background:#F5F0E8;-webkit-font-smoothing:antialiased;font-size:16px}
+input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+input[type=number]{-moz-appearance:textfield}
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-thumb{background:rgba(184,155,114,.3);border-radius:4px}
+</style>
 </head>
 <body>
-<div class="wrap">
+<div id="root"></div>
+<script type="text/babel" data-presets="react">
+const { useState, useMemo } = React;
 
-<h1>Polster Konfigurator</h1>
+const C = {
+  linen:"#F5F0E8",linen2:"#EDE7D9",bark:"#2B2318",bark2:"#4A3D2F",
+  moss:"#4C5E48",sand:"#B89B72",sand2:"#D4B98A",chalk:"#FDFAF5",mid:"#8A7D6A",
+};
+const fmt = n => n.toFixed(2).replace(".",",") + " €";
 
-<label>Form</label>
-<select id="form">
-<option>Rechteck – Würfel</option>
-<option>Eckkissen</option>
-<option>Trapez</option>
-</select>
-
-<label>Bezugsstoff</label>
-<select id="fabric">
-<option>Soleo 6</option>
-<option>Soleo 15</option>
-<option>Soleo 2</option>
-</select>
-
-<label>Schaumstoff</label>
-<select id="foam">
-<option>Kein Schaumstoff</option>
-<option>RG35</option>
-<option>RG40</option>
-</select>
-
-<label>Preis</label>
-<input id="price" type="number" value="52.49" step="0.01">
-
-<label>Beschreibung</label>
-<textarea id="description">Individuell konfiguriertes Polster</textarea>
-
-<button id="cartBtn">In den Warenkorb</button>
-
-<div id="log">Konfigurator geladen...\n</div>
-
-</div>
-
-<script>
-
-const CONFIG = {
-  WIX_BASE_URL: "https://service1513.wixstudio.com",
-  SAVE_CONFIG_ENDPOINT: "/_functions/saveConfig",
-  REDIRECT_PATH: "/konfigurator-warenkorb"
+const FOAM_TYPES = {
+  "none":      {name:"Kein Schaumstoff",         density:0 },
+  "pur_18_20": {name:"PUR 18/20 – sehr weich",   density:18},
+  "pur_22_40": {name:"PUR 22/40 – mittelweich",  density:22},
+  "pur_30_48": {name:"PUR 30/48 – fest",         density:30},
+  "pur_40_70": {name:"PUR 40/70 – sehr fest",    density:40},
+  "hr_30_40":  {name:"HR Kaltschaum 30/40 H2",   density:30},
+  "hr_40_40":  {name:"HR Kaltschaum 40/40 H3",   density:40},
+  "hr_45_50":  {name:"HR Kaltschaum 45/50 H4",   density:45},
 };
 
-const logEl = document.getElementById("log");
+// a=Dicke, b=Länge, c=Breite IMMER (Pflicht, Rechteck-Kalkulation)
+// d,e,f = nur wenn in DB-Tabelle vorhanden → nur für Fertigung anzeigen
+const FORMS = [
+  {id:"rechteck",             label:"Rechteck – Würfel",                    foamFactor:1,    sides:["a","b","c"]            },
+  {id:"rechteck-schraeg",     label:"Rechteck mit Schrägabschnitt",         foamFactor:1.2,  sides:["a","b","c","d","e"]    },
+  {id:"rechteck-kl-eck",      label:"Rechteck mit kleinem Eckabschnitt",    foamFactor:1.2,  sides:["a","b","c","d","e","f"]},
+  {id:"dreieck-recht",        label:"Rechtwinkliges Dreieck",               foamFactor:1.8,  sides:["a","b","c"]            },
+  {id:"dreieck-gleich",       label:"Gleichseitiges Dreieck",               foamFactor:1.6,  sides:["a","b","c"]            },
+  {id:"dreieck-abschnitt",    label:"Dreieck mit Abschnitt",                foamFactor:1.2,  sides:["a","b","c","d"]        },
+  {id:"trapez",               label:"Trapez",                               foamFactor:1.58, sides:["a","b","c","d"]        },
+  {id:"fuenfeck",             label:"Fünfeck",                              foamFactor:2.12, sides:["a","b","c","d"]        },
+  {id:"sechseck",             label:"Sechseck",                             foamFactor:2.12, sides:["a","b","c","d"]        },
+  {id:"achteck",              label:"Achteck",                              foamFactor:2.2,  sides:["a","b","c","d","e"]    },
+  {id:"rechteck-zwei-eck",    label:"Rechteck mit 2 Eckabschnitten",        foamFactor:1.2,  sides:["a","b","c","d","e"]    },
+  {id:"eckkissen",            label:"Eckkissen",                            foamFactor:1.95, sides:["a","b","c","d","e","f"]},
+  {id:"l-form",               label:"L-Form",                               foamFactor:1.89, sides:["a","b","c","d","e"]    },
+  {id:"u-form",               label:"U-Form",                               foamFactor:1.82, sides:["a","b","c","d","e"]    },
+  {id:"eck-abschnitt",        label:"Rechteck mit Eckabschnitt",            foamFactor:1.2,  sides:["a","b","c","d","e"]    },
+  {id:"rechteck-abschnitt",   label:"Rechteck mit Abschnitt",               foamFactor:1.2,  sides:["a","b","c","d"]        },
+  {id:"rechteck-vier-eck",    label:"Rechteck mit 4 Eckabschnitten",        foamFactor:2,    sides:["a","b","c","d","e"]    },
+  {id:"rechteck-zwei-schraeg",label:"Rechteck mit 2 Schrägabschnitten",     foamFactor:1.2,  sides:["a","b","c","d","e"]    },
+];
 
-function log(msg){
- console.log(msg);
- logEl.textContent += msg + "\n";
+
+const FORM_IMAGES = {
+  "rechteck": "images/rechteck.png",
+  "eck-abschnitt": "images/eck-abschnitt.png",
+  "rechteck-abschnitt": "images/rechteck-abschnitt.png",
+  "dreieck-abschnitt": "images/dreieck-abschnitt.png",
+  "rechteck-kl-eck": "images/rechteck-kl-eck.png",
+  "rechteck-zwei-eck": "images/rechteck-zwei-eck.png",
+  "u-form": "images/u-form.png",
+  "l-form": "images/l-form.png",
+  "eckkissen": "images/eckkissen.png",
+  "achteck": "images/achteck.png",
+  "sechseck": "images/sechseck.png",
+  "fuenfeck": "images/fuenfeck.png",
+  "trapez": "images/trapez.png",
+  "dreieck-gleich": "images/dreieck-gleich.png",
+  "dreieck-recht": "images/dreieck-recht.png",
+  "rechteck-schraeg": "images/rechteck-schraeg.png",
+  "rechteck-zwei-schraeg": "images/rechteck-zwei-schraeg.png",
+  "rechteck-vier-eck": "images/rechteck-vier-eck.png",
+  "scheibe": "images/scheibe.png",
+};
+
+
+
+const FABRICS = [
+  {id:"l2",  n:"Lex 2",              c:"#8B7355",p:9.5,  cat:"indoor",     g:"Lex"},
+  {id:"l4",  n:"Lex 4",              c:"#9B9B9B",p:9.5,  cat:"indoor",     g:"Lex"},
+  {id:"l5",  n:"Lex 5",              c:"#6A6A6A",p:9.5,  cat:"indoor",     g:"Lex"},
+  {id:"l22", n:"Lex 22",             c:"#6B8E5E",p:9.5,  cat:"indoor",     g:"Lex"},
+  {id:"l26", n:"Lex 26",             c:"#B0A898",p:9.5,  cat:"indoor",     g:"Lex"},
+  {id:"l33", n:"Lex 33",             c:"#404040",p:9.5,  cat:"indoor",     g:"Lex"},
+  {id:"c1",  n:"Calima 1",           c:"#F0EAE0",p:12.75,cat:"indoor",     g:"Calima"},
+  {id:"c6",  n:"Calima 6",           c:"#A07850",p:12.75,cat:"indoor",     g:"Calima"},
+  {id:"c11", n:"Calima 11",          c:"#3A2A18",p:12.75,cat:"indoor",     g:"Calima"},
+  {id:"c16", n:"Calima 16",          c:"#4A6B8A",p:12.75,cat:"indoor",     g:"Calima"},
+  {id:"c17", n:"Calima 17",          c:"#6B8E5E",p:12.75,cat:"indoor",     g:"Calima"},
+  {id:"c31", n:"Calima 31",          c:"#787878",p:12.75,cat:"indoor",     g:"Calima"},
+  {id:"c33", n:"Calima 33",          c:"#C8B898",p:12.75,cat:"indoor",     g:"Calima"},
+  {id:"c36", n:"Calima 36",          c:"#1A1A1A",p:12.75,cat:"indoor",     g:"Calima"},
+  {id:"s1",  n:"Soleo 1",            c:"#D8D0C0",p:20,   cat:"premium",    g:"Soleo"},
+  {id:"s2",  n:"Soleo 2",            c:"#A0A0A0",p:20,   cat:"premium",    g:"Soleo"},
+  {id:"s3",  n:"Soleo 3",            c:"#606060",p:20,   cat:"premium",    g:"Soleo"},
+  {id:"s6",  n:"Soleo 6",            c:"#D4907A",p:20,   cat:"premium",    g:"Soleo"},
+  {id:"s11", n:"Soleo 11",           c:"#5080A0",p:20,   cat:"premium",    g:"Soleo"},
+  {id:"s15", n:"Soleo 15",           c:"#3A6040",p:20,   cat:"premium",    g:"Soleo"},
+  {id:"g1",  n:"Gaia 1",             c:"#C8A070",p:20.98,cat:"premium",    g:"Gaia"},
+  {id:"g4",  n:"Gaia 4",             c:"#708090",p:20.98,cat:"premium",    g:"Gaia"},
+  {id:"g7",  n:"Gaia 7",             c:"#506870",p:20.98,cat:"premium",    g:"Gaia"},
+  {id:"sv1", n:"Silvertex Macadamia",c:"#D4C4A0",p:41,   cat:"outdoor",    g:"Silvertex"},
+  {id:"sv2", n:"Silvertex Mocca",    c:"#7A5A40",p:41,   cat:"outdoor",    g:"Silvertex"},
+  {id:"sv3", n:"Silvertex Taupe",    c:"#B0A090",p:41,   cat:"outdoor",    g:"Silvertex"},
+  {id:"sv4", n:"Silvertex Carbon",   c:"#303030",p:41,   cat:"outdoor",    g:"Silvertex"},
+  {id:"sv5", n:"Silvertex Ice",      c:"#D8E8F0",p:41,   cat:"outdoor",    g:"Silvertex"},
+  {id:"sv6", n:"Silvertex Red",      c:"#C04040",p:41,   cat:"outdoor",    g:"Silvertex"},
+  {id:"sv7", n:"Silvertex Basil",    c:"#4A6840",p:41,   cat:"outdoor",    g:"Silvertex"},
+  {id:"v1",  n:"Vivo 1",             c:"#D0C8B8",p:15,   cat:"kunstleder", g:"Vivo"},
+  {id:"v3",  n:"Vivo 3",             c:"#A8A8A8",p:15,   cat:"kunstleder", g:"Vivo"},
+  {id:"v6",  n:"Vivo 6",             c:"#5A4030",p:15,   cat:"kunstleder", g:"Vivo"},
+  {id:"v10", n:"Vivo 10",            c:"#703020",p:15,   cat:"kunstleder", g:"Vivo"},
+  {id:"v14", n:"Vivo 14",            c:"#3060A0",p:15,   cat:"kunstleder", g:"Vivo"},
+  {id:"v32", n:"Vivo 32",            c:"#3A6040",p:15,   cat:"kunstleder", g:"Vivo"},
+];
+
+const EXTRAS = [
+  {id:"rz",  label:"Reißverschluss",        icon:"🔐",desc:"Abnehmbarer Bezug – inklusive.",          perM2:false,price:0},
+  {id:"watt",label:"Wattierung",             icon:"☁️", desc:"Weichere Optik durch Watteschicht.",    perM2:true, price:8},
+  {id:"trik",label:"Trikotierung (Jersey)",  icon:"🧤",desc:"Schützende Jerseyschicht um den Kern.", perM2:true, price:4},
+  {id:"anti",label:"Anti-Rutsch Unterseite", icon:"🛑",desc:"Ideal für glatte Stühle und Bänke.",    perM2:false,price:3},
+  // {id:"expr",label:"Express-Lieferung 48h", icon:"⚡", desc:"Garantiert innerhalb 48h.", perM2:false,price:49.99},
+];
+
+const STEPS = ["Form","Maße","Stoff","Schaum","Extras","Warenkorb"];
+const FOAM_PRICE_PER_KG = 22;
+
+// ── small helpers ──
+const Tip = ({children}) => (
+  React.createElement('div',{style:{background:C.linen2,borderLeft:`3px solid ${C.sand}`,
+    padding:"10px 14px",fontSize:12,color:C.mid,lineHeight:1.6,marginBottom:"1.2rem"}},children)
+);
+
+const SH = ({n,title,sub}) => (
+  React.createElement('div',{style:{marginBottom:"1.8rem"}},
+    React.createElement('div',{style:{fontSize:11,letterSpacing:"0.2em",textTransform:"uppercase",
+      color:C.sand,display:"flex",alignItems:"center",gap:8,marginBottom:6}},
+      React.createElement('span',{style:{width:24,height:1,background:C.sand,display:"inline-block"}}),
+      `Schritt ${n} von 6`
+    ),
+    React.createElement('h2',{style:{fontSize:"clamp(1.6rem,2.2vw,2.4rem)",fontWeight:300,
+      lineHeight:1.15,fontFamily:"Georgia,serif",marginBottom:6,color:C.bark}},title),
+    React.createElement('p',{style:{fontSize:13,color:C.mid,lineHeight:1.7}},sub)
+  )
+);
+
+const DimInput = ({label,value,onChange,isPrice,hint}) => {
+  const displayLabel = label==="a" ? "Dicke" : `Seite ${label.toUpperCase()}`;
+  const finalHint    = label==="a" ? "= Höhe / Dicke des Polsters" : hint;
+  return React.createElement('div',{style:{display:"flex",flexDirection:"column",gap:4}},
+    React.createElement('div',{style:{fontSize:11,letterSpacing:"0.1em",textTransform:"uppercase",
+      color:isPrice?C.sand:C.mid,display:"flex",alignItems:"center",gap:6}},
+      React.createElement('span',{style:{width:20,height:20,
+        background:isPrice?C.sand:"rgba(184,155,114,.25)",
+        color:isPrice?C.bark:C.mid,borderRadius:2,display:"inline-flex",
+        alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:700,flexShrink:0}},
+        label.toUpperCase()
+      ),
+      displayLabel
+    ),
+    React.createElement('div',{style:{position:"relative"}},
+      React.createElement('input',{type:"number",min:"1",max:"500",placeholder:"cm",
+        value:value||"",onChange:e=>onChange(e.target.value),
+        style:{width:"100%",background:C.chalk,
+          border:`1.5px solid ${isPrice?"rgba(184,155,114,.4)":"rgba(184,155,114,.15)"}`,
+          padding:"12px 36px 12px 14px",fontSize:16,color:C.bark,outline:"none"}}),
+      React.createElement('span',{style:{position:"absolute",right:10,top:"50%",
+        transform:"translateY(-50%)",fontSize:11,color:C.mid}},"cm")
+    ),
+    finalHint && React.createElement('span',{style:{fontSize:10,color:C.mid}},finalHint)
+  );
+};
+
+function App() {
+  const [step,      setStep]     = useState(0);
+  const [formId,    setFormId]   = useState("rechteck");
+  const [dims,      setDims]     = useState({});
+  const [foamKey,   setFoamKey]  = useState("none");
+  const [fabric,    setFabric]   = useState(null);
+  const [fabFilter, setFabFilter]= useState("alle");
+  const [extras,    setExtras]   = useState({rz:true});
+  const [success,   setSuccess]  = useState(false);
+  const [order,     setOrder]    = useState({fn:"",ln:"",email:"",phone:"",addr:"",pay:"",note:""});
+
+  const cf  = FORMS.find(f=>f.id===formId)||FORMS[0];
+  const foam= FOAM_TYPES[foamKey];
+  const fab = FABRICS.find(f=>f.id===fabric);
+
+  const prices = useMemo(()=>{
+    // Kalkulation IMMER als Rechteck: a=Dicke, b=Länge, c=Breite
+    const a = parseFloat(dims.a||0)/100;
+    const b = parseFloat(dims.b||0)/100;
+    const c = parseFloat(dims.c||0)/100;
+    if(!a||!b||!c) return {fabric:0,foam:0,jersey:0,wadding:0,extras:0,total:0,surface:0,volume:0};
+    const surface = 2*(a*b + a*c + b*c);
+    const volume  = a*b*c;
+    const fabricRaw = fab ? Math.round(surface*fab.p*100)/100 : 0;
+    const fabricCost = fabricRaw>0 ? Math.max(47.99, fabricRaw) : 0;
+    const foamCost = foam.density>0 ? Math.round(cf.foamFactor*FOAM_PRICE_PER_KG*foam.density*volume*100)/100 : 0;
+    const jerseyCost  = extras.trik ? Math.round(4*surface*100)/100 : 0;
+    const waddingCost = extras.watt ? Math.round(8*surface*100)/100 : 0;
+    const otherExtras = EXTRAS.filter(e=>e.id!=="watt"&&e.id!=="trik"&&extras[e.id]).reduce((s,e)=>s+e.price,0);
+    const total = fabricCost+foamCost+jerseyCost+waddingCost+otherExtras;
+    return {fabric:fabricCost,foam:foamCost,jersey:jerseyCost,wadding:waddingCost,
+      extras:otherExtras,total:Math.round(total*100)/100,
+      surface:Math.round(surface*1000)/1000,
+      volume:Math.round(volume*1000000)/10};
+  },[dims.a,dims.b,dims.c,fab,foamKey,extras,cf]);
+
+  const shipping = prices.total>0 ? (prices.total>=89?0:4.50) : 0;
+  // a, b, c immer Pflicht – Kalkulation immer als Rechteck
+  const dimsOK = cf.sides.every(k=>(dims[k]||"")&&parseFloat(dims[k])>0);
+  const canNext = [true,dimsOK,!!fabric,true,true,true];
+  const go=n=>{if(n>=0&&n<=5)setStep(n);};
+  const setDim=(k,v)=>setDims(d=>({...d,[k]:v}));
+
+  const renderStep=()=>{
+    switch(step){
+      // ── STEP 0: FORM ──
+      case 0: return React.createElement('div',null,
+        React.createElement(SH,{n:1,
+          title:React.createElement('span',null,"Wähle die ",React.createElement('em',{style:{color:C.sand,fontStyle:"italic"}},"Form"),React.createElement('br'),"deines Polsters."),
+          sub:"Klicke auf die passende Form. Die Maße gibst du im nächsten Schritt ein."}),
+        React.createElement('div',{style:{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:1,
+          background:"rgba(184,155,114,.1)",marginBottom:"1.5rem"}},
+          FORMS.map(f=>React.createElement('div',{key:f.id,
+            onClick:()=>{setFormId(f.id);setDims({});},
+            style:{background:formId===f.id?C.linen2:C.chalk,padding:"1rem .7rem",
+              cursor:"pointer",textAlign:"center",transition:"all .2s",position:"relative",
+              border:`2px solid ${formId===f.id?C.sand:"transparent"}`}},
+            formId===f.id&&React.createElement('div',{style:{position:"absolute",top:4,right:6,
+              fontSize:10,color:C.sand,fontWeight:700}},"✓"),
+            React.createElement('img',{src:FORM_IMAGES[f.id],width:100,height:100,style:{display:"block",margin:"0 auto 8px",objectFit:"contain"}}),
+            React.createElement('div',{style:{fontSize:10,fontWeight:500,color:C.bark,lineHeight:1.35}},f.label)
+          ))
+        ),
+        React.createElement(Tip,null,"Wähle die Form die deinem Polster am nächsten kommt.")
+      );
+
+      // ── STEP 1: MASSE ──
+      case 1: {
+        const extra = cf.sides.filter(s=>!["a","b","c"].includes(s));
+        return React.createElement('div',null,
+          React.createElement(SH,{n:2,
+            title:React.createElement('span',null,"Maße für ",React.createElement('em',{style:{color:C.sand,fontStyle:"italic"}},cf.label),"."),
+            sub:"Alle Maße in cm angeben. A = Dicke des Polsters."}),
+          React.createElement('div',{style:{background:C.linen2,border:"1px dashed rgba(184,155,114,.3)",
+            padding:"1.5rem",display:"flex",flexDirection:"column",alignItems:"center",
+            justifyContent:"center",marginBottom:"1.5rem",gap:8}},
+            React.createElement('img',{src:FORM_IMAGES[formId],width:360,height:360,style:{objectFit:"contain"}}),
+            cf.sides.every(k=>dims[k])&&React.createElement('div',{style:{fontSize:11,color:C.sand,textAlign:"center"}},
+              cf.sides.map(k=>dims[k]?`${k.toUpperCase()}=${dims[k]}cm`:"").filter(Boolean).join(" · "),
+              prices.total>0&&fab&&React.createElement('span',{style:{color:C.moss,marginLeft:8}},`→ ${fmt(prices.total)}`)
+            )
+          ),
+          React.createElement('div',{style:{marginBottom:"1.2rem"}},
+            React.createElement('div',{style:{fontSize:10,letterSpacing:"0.16em",textTransform:"uppercase",
+              color:C.sand,marginBottom:"0.7rem",display:"flex",alignItems:"center",gap:6}},
+              React.createElement('span',{style:{width:18,height:1,background:C.sand,display:"inline-block"}}),
+              "Alle Maße eingeben (Pflichtfelder)"
+            ),
+            React.createElement('div',{style:{display:"grid",
+              gridTemplateColumns:`repeat(${Math.min(cf.sides.length,3)},1fr)`,gap:"1rem"}},
+              cf.sides.map(k=>React.createElement(DimInput,{key:k,label:k,value:dims[k]||"",
+                onChange:v=>setDim(k,v),isPrice:true}))
+            )
+          ),
+          React.createElement(Tip,null,
+            React.createElement('span',null,"📐 ",React.createElement('strong',null,"A = Dicke:"),
+              " Sitzpolster 8–12 cm · Rückenpolster 4–6 cm · Matratzen 10–18 cm")
+          )
+        );
+      }
+
+      // ── STEP 2: STOFF ──
+      case 2: {
+        const filtered=fabFilter==="alle"?FABRICS:FABRICS.filter(f=>f.cat===fabFilter);
+        return React.createElement('div',null,
+          React.createElement(SH,{n:3,
+            title:React.createElement('span',null,"Wähle deinen",React.createElement('br'),React.createElement('em',{style:{color:C.sand,fontStyle:"italic"}},"Wunschstoff.")),
+            sub:"Laufmeterpreis × Oberfläche = Stoffkosten. Filter nach Kategorie."}),
+          React.createElement('div',{style:{display:"flex",gap:6,marginBottom:"1rem",flexWrap:"wrap"}},
+            ["alle","indoor","premium","outdoor","kunstleder"].map(cat=>
+              React.createElement('button',{key:cat,onClick:()=>setFabFilter(cat),
+                style:{padding:"5px 12px",fontSize:11,cursor:"pointer",letterSpacing:"0.08em",
+                  textTransform:"uppercase",border:`1.5px solid ${fabFilter===cat?C.sand:"rgba(184,155,114,.2)"}`,
+                  background:fabFilter===cat?C.sand:"transparent",color:fabFilter===cat?C.bark:C.mid}},
+                cat==="alle"?"Alle":cat==="kunstleder"?"Kunstleder":cat.charAt(0).toUpperCase()+cat.slice(1)
+              )
+            )
+          ),
+          React.createElement('div',{style:{marginBottom:"0.8rem",display:"flex",alignItems:"center",
+            justifyContent:"space-between",flexWrap:"wrap",gap:8}},
+            React.createElement('span',{style:{fontSize:11,color:C.mid}},`${filtered.length} Stoffe`),
+            React.createElement('a',{
+              href:"https://www.polster24.shop/muster-anfordern",
+              target:"_blank",
+              style:{display:"flex",alignItems:"center",gap:6,
+                background:"transparent",border:"1.5px solid "+C.sand,
+                color:C.bark,padding:"6px 14px",fontSize:11,fontWeight:600,
+                letterSpacing:"0.08em",textTransform:"uppercase",
+                textDecoration:"none",whiteSpace:"nowrap"}},
+              "✉ Muster anfordern"
+            )
+          ),
+          React.createElement('div',{style:{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:1,
+            background:"rgba(184,155,114,.1)",marginBottom:"1.5rem"}},
+            filtered.map(f=>{
+              const on=fabric===f.id;
+              const fp=prices.surface>0?Math.max(47.99,Math.round(prices.surface*f.p*100)/100):null;
+              return React.createElement('div',{key:f.id,onClick:()=>setFabric(f.id),
+                style:{background:on?C.linen2:C.chalk,padding:"0.9rem 1rem",cursor:"pointer",
+                  border:`2px solid ${on?C.sand:"transparent"}`,transition:"all .2s",
+                  display:"flex",alignItems:"center",gap:10}},
+                React.createElement('div',{style:{width:28,height:28,borderRadius:2,flexShrink:0,
+                  background:f.c,border:`1px solid rgba(0,0,0,.1)`}}),
+                React.createElement('div',{style:{flex:1,minWidth:0}},
+                  React.createElement('div',{style:{fontSize:12,fontWeight:on?500:300,color:C.bark,
+                    whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}},f.n),
+                  React.createElement('div',{style:{fontSize:11,color:C.mid,marginTop:1}},
+                    `${f.p.toFixed(2)} €/lm`)
+                ),
+                fp&&React.createElement('div',{style:{fontSize:12,color:on?C.sand:C.mid,
+                  fontWeight:on?600:300,flexShrink:0}},fmt(fp))
+              );
+            })
+          ),
+          React.createElement(Tip,null,"Kostenlose Musterbestellung auf Anfrage möglich.")
+        );
+      }
+
+      // ── STEP 3: SCHAUM ──
+      case 3: return React.createElement('div',null,
+        React.createElement(SH,{n:4,
+          title:React.createElement('span',null,"Wähle deinen",React.createElement('br'),React.createElement('em',{style:{color:C.sand,fontStyle:"italic"}},"Schaumstoff.")),
+          sub:"Optional – du kannst auch nur einen Bezug ohne Schaumstoff bestellen."}),
+        React.createElement('div',{style:{display:"grid",gridTemplateColumns:"1fr",gap:1,
+          background:"rgba(184,155,114,.1)",marginBottom:"1.5rem"}},
+          Object.entries(FOAM_TYPES).map(([key,f])=>{
+            const on=foamKey===key;
+            const a=parseFloat(dims.a||0)/100,b=parseFloat(dims.b||0)/100,c=parseFloat(dims.c||0)/100;
+            const vol=a*b*c;
+            const fp=f.density>0&&vol>0?Math.round(cf.foamFactor*FOAM_PRICE_PER_KG*f.density*vol*100)/100:null;
+            return React.createElement('div',{key,onClick:()=>setFoamKey(key),
+              style:{background:on?C.linen2:C.chalk,padding:"0.9rem 1.2rem",cursor:"pointer",
+                border:`2px solid ${on?C.sand:"transparent"}`,transition:"all .2s",
+                display:"flex",alignItems:"center",justifyContent:"space-between",gap:12}},
+              React.createElement('div',{style:{display:"flex",alignItems:"center",gap:10}},
+                React.createElement('div',{style:{width:10,height:10,borderRadius:"50%",flexShrink:0,
+                  background:on?C.sand:"rgba(184,155,114,.2)",border:`1.5px solid ${on?C.sand:C.mid}`}}),
+                React.createElement('div',null,
+                  React.createElement('div',{style:{fontSize:14,fontWeight:on?500:300,color:C.bark}},f.name),
+                  f.density>0&&React.createElement('div',{style:{fontSize:11,color:C.mid,marginTop:2}},
+                    `Raumgewicht: ${f.density} kg/m³`)
+                )
+              ),
+              React.createElement('div',{style:{textAlign:"right",flexShrink:0}},
+                fp?React.createElement('div',{style:{fontSize:14,color:on?C.sand:C.mid,fontWeight:on?600:300}},
+                  fmt(fp)):
+                React.createElement('div',{style:{fontSize:12,color:C.mid}},"inklusive")
+              )
+            );
+          })
+        ),
+        React.createElement('div',{style:{marginTop:"1.2rem",padding:"1rem 1.2rem",
+          background:C.linen2,border:"1px dashed rgba(184,155,114,.3)",
+          display:"flex",alignItems:"center",justifyContent:"space-between",gap:12}},
+          React.createElement('div',null,
+            React.createElement('div',{style:{fontSize:13,fontWeight:500,color:C.bark}},"Nur Bezug ohne Schaumstoff?"),
+            React.createElement('div',{style:{fontSize:12,color:C.mid,marginTop:3}},
+              "Schaumstoff ist optional – überspringe diesen Schritt wenn du nur einen Bezug möchtest."
+            )
+          ),
+          React.createElement('button',{
+            onClick:()=>{setFoamKey("none");go(4);},
+            style:{background:"transparent",border:"1.5px solid "+C.sand,color:C.bark,
+              padding:"9px 20px",cursor:"pointer",fontSize:12,fontWeight:600,
+              whiteSpace:"nowrap",letterSpacing:"0.05em"}},
+            "Überspringen →"
+          )
+        )
+      );
+
+      // ── STEP 4: EXTRAS ──
+      case 4: return React.createElement('div',null,
+        React.createElement(SH,{n:5,
+          title:React.createElement('span',null,"Extras &",React.createElement('br'),React.createElement('em',{style:{color:C.sand,fontStyle:"italic"}},"Veredelungen.")),
+          sub:"Alle Extras sind optional. Preise werden live berechnet."}),
+        React.createElement('div',{style:{display:"grid",gridTemplateColumns:"1fr",gap:1,
+          background:"rgba(184,155,114,.1)",marginBottom:"1.5rem"}},
+          EXTRAS.map(e=>React.createElement('div',{key:e.id,
+            onClick:()=>setExtras(x=>({...x,[e.id]:!x[e.id]})),
+            style:{background:extras[e.id]?C.linen2:C.chalk,padding:"0.9rem 1.2rem",cursor:"pointer",
+              border:`2px solid ${extras[e.id]?C.sand:"transparent"}`,transition:"all .2s",
+              display:"flex",alignItems:"center",gap:12}},
+            React.createElement('div',{style:{width:18,height:18,border:`1.5px solid ${extras[e.id]?C.sand:C.mid}`,
+              borderRadius:2,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,
+              background:extras[e.id]?C.sand:"transparent"}},
+              extras[e.id]&&React.createElement('span',{style:{fontSize:11,color:C.bark,fontWeight:700}},"✓")
+            ),
+            React.createElement('span',{style:{fontSize:18}}),
+            React.createElement('div',{style:{flex:1}},
+              React.createElement('div',{style:{fontSize:13,fontWeight:500,color:C.bark}},e.label),
+              React.createElement('div',{style:{fontSize:11,color:C.mid,marginTop:2}},e.desc)
+            ),
+            React.createElement('div',{style:{fontSize:13,color:extras[e.id]?C.sand:C.mid,fontWeight:extras[e.id]?600:300}},
+              e.price===0?"inkl.":e.perM2?`+${fmt(e.price)}/m²`:`+${fmt(e.price)}`
+            )
+          ))
+        )
+      );
+
+      // ── STEP 5: WARENKORB ──
+      case 5: {
+        // Konfigurationstext – untereinander formatiert
+        const extraLabels = Object.entries(extras)
+          .filter(([,v])=>v)
+          .map(([k])=>EXTRAS.find(e=>e.id===k)?.label)
+          .filter(Boolean);
+
+        const dimText = cf.sides
+          .map(k=>dims[k]?`${k.toUpperCase()} = ${dims[k]} cm`:"")
+          .filter(Boolean)
+          .join("\n");
+
+        const beschreibung = [
+          `📐 Form: ${cf.label}`,
+          `📏 Maße:\n${dimText}`,
+          `🧵 Bezugsstoff: ${fab ? fab.n+" ("+fab.p.toFixed(2)+"€/lm)" : "–"}`,
+          `🟦 Schaumstoff: ${foam.name}${foam.density>0?" ("+foam.density+" kg/m³)":""}`,
+          `➕ Extras: ${extraLabels.length>0?extraLabels.join(", "):"–"}`,
+          ``,
+          `💶 Bezugsstoff: ${prices.fabric>0?fmt(prices.fabric):"–"}`,
+          `💶 Schaumstoff: ${prices.foam>0?fmt(prices.foam):"–"}`,
+          prices.wadding>0?`💶 Wattierung: ${fmt(prices.wadding)}`:"",
+          prices.jersey>0?`💶 Jersey: ${fmt(prices.jersey)}`:"",
+          prices.extras>0?`💶 Extras: ${fmt(prices.extras)}`:"",
+          `🚚 Versand: ${shipping===0?"Kostenlos":fmt(shipping)}`,
+          `💰 Gesamt: ${fmt(prices.total+shipping)}`,
+        ].filter(l=>l!=="").join("\n");
+
+        const cartData = {
+          form:        cf.label,
+          formId:      formId,
+          dims:        dims,
+          fabric:      fab ? {id:fabric, name:fab.n, price:fab.p} : null,
+          foam:        {id:foamKey, name:foam.name, density:foam.density},
+          extras:      extraLabels,
+          prices:      prices,
+          total:       Math.round((prices.total + shipping)*100)/100,
+          shipping:    shipping,
+          beschreibung: beschreibung,
+          image:       FORM_IMAGES[formId],  // Base64 Bild der gewählten Form
+        };
+
+        const CART_PAGE_PATH = "/warenkorb"; // Falls dein Slug anders heißt, hier ändern.
+
+        const handleAddToCart = () => {
+          console.log("🛒 IN DEN WARENKORB GEKLICKT");
+          console.log("CartData:", JSON.stringify({
+            form: cartData.form,
+            total: cartData.total,
+            fabric: cartData.fabric?.name,
+            foam: cartData.foam?.name,
+          }));
+
+          try {
+            const encodedConfig = encodeURIComponent(JSON.stringify(cartData));
+            const targetUrl = `${CART_PAGE_PATH}?polsterConfig=${encodedConfig}`;
+
+            // Zusätzliche Nachricht an Wix-Seitencode, falls du dort später noch etwas abfangen willst
+            try {
+              window.parent.postMessage({ type:"POLSTER24_ADD_TO_CART", data:cartData, targetUrl }, "*");
+              window.top?.postMessage({ type:"POLSTER24_ADD_TO_CART", data:cartData, targetUrl }, "*");
+              console.log("✓ postMessage an Parent/Top gesendet");
+            } catch(msgErr) {
+              console.warn("postMessage nicht möglich:", msgErr);
+            }
+
+            // Direkte Weiterleitung auf die Wix-Warenkorbseite – komplett ohne fetch
+            if (window.top && window.top !== window.self) {
+              window.top.location.href = targetUrl;
+            } else {
+              window.location.href = targetUrl;
+            }
+
+            setSuccess(true);
+          } catch(e) {
+            console.error("✗ Weiterleitung zum Warenkorb fehlgeschlagen:", e);
+            alert("Fehler beim Übertragen der Konfiguration.");
+          }
+        };
+        return React.createElement('div',null,
+          React.createElement(SH,{n:6,
+            title:React.createElement('span',null,"Deine Konfiguration",React.createElement('br'),React.createElement('em',{style:{color:C.sand,fontStyle:"italic"}},"im Überblick.")),
+            sub:"Alles korrekt? Dann füge dein individuelles Polster dem Warenkorb hinzu."}),
+
+          // Zusammenfassung Box
+          React.createElement('div',{style:{background:C.chalk,border:"1px solid rgba(184,155,114,.2)",
+            marginBottom:"1.5rem"}},
+
+            // Form + Maße
+            React.createElement('div',{style:{padding:"1.2rem 1.4rem",borderBottom:"1px solid rgba(184,155,114,.1)"}},
+              React.createElement('div',{style:{fontSize:10,letterSpacing:"0.15em",textTransform:"uppercase",
+                color:C.sand,marginBottom:"0.8rem"}},"Form & Maße"),
+              React.createElement('div',{style:{display:"flex",alignItems:"center",gap:"1.5rem"}},
+                React.createElement('img',{src:FORM_IMAGES[formId],width:80,height:80,
+                  style:{objectFit:"contain",flexShrink:0}}),
+                React.createElement('div',null,
+                  React.createElement('div',{style:{fontSize:14,fontWeight:500,color:C.bark,marginBottom:6}},cf.label),
+                  React.createElement('div',{style:{display:"flex",flexWrap:"wrap",gap:6}},
+                    cf.sides.map(k=>dims[k]&&React.createElement('span',{key:k,
+                      style:{background:"rgba(184,155,114,.12)",padding:"3px 8px",fontSize:12,color:C.bark}},
+                      `${k.toUpperCase()} = ${dims[k]} cm`
+                    ))
+                  )
+                )
+              )
+            ),
+
+            // Stoff
+            fab&&React.createElement('div',{style:{padding:"1rem 1.4rem",borderBottom:"1px solid rgba(184,155,114,.1)",
+              display:"flex",alignItems:"center",justifyContent:"space-between"}},
+              React.createElement('div',null,
+                React.createElement('div',{style:{fontSize:10,letterSpacing:"0.15em",textTransform:"uppercase",
+                  color:C.sand,marginBottom:4}},"Bezugsstoff"),
+                React.createElement('div',{style:{display:"flex",alignItems:"center",gap:10}},
+                  React.createElement('div',{style:{width:24,height:24,background:fab.c,borderRadius:2,
+                    border:"1px solid rgba(0,0,0,.1)",flexShrink:0}}),
+                  React.createElement('span',{style:{fontSize:13,color:C.bark}},fab.n)
+                )
+              ),
+              React.createElement('span',{style:{fontSize:13,color:C.sand,fontWeight:500}},`${fab.p.toFixed(2)} €/lm`)
+            ),
+
+            // Schaum
+            React.createElement('div',{style:{padding:"1rem 1.4rem",borderBottom:"1px solid rgba(184,155,114,.1)",
+              display:"flex",justifyContent:"space-between",alignItems:"center"}},
+              React.createElement('div',null,
+                React.createElement('div',{style:{fontSize:10,letterSpacing:"0.15em",textTransform:"uppercase",
+                  color:C.sand,marginBottom:4}},"Schaumstoff"),
+                React.createElement('span',{style:{fontSize:13,color:C.bark}},foam.name)
+              ),
+              foam.density>0&&React.createElement('span',{style:{fontSize:12,color:C.mid}},
+                `${foam.density} kg/m³`)
+            ),
+
+            // Extras
+            React.createElement('div',{style:{padding:"1rem 1.4rem",borderBottom:"1px solid rgba(184,155,114,.1)"}},
+              React.createElement('div',{style:{fontSize:10,letterSpacing:"0.15em",textTransform:"uppercase",
+                color:C.sand,marginBottom:6}},"Extras"),
+              React.createElement('div',{style:{display:"flex",flexWrap:"wrap",gap:6}},
+                EXTRAS.map(e=>React.createElement('span',{key:e.id,
+                  style:{padding:"3px 10px",fontSize:12,
+                    background:extras[e.id]?"rgba(184,155,114,.15)":"rgba(184,155,114,.04)",
+                    color:extras[e.id]?C.bark:C.mid,
+                    border:`1px solid ${extras[e.id]?"rgba(184,155,114,.3)":"rgba(184,155,114,.1)"}`}},
+                  e.label
+                ))
+              )
+            ),
+
+            // Preisübersicht
+            React.createElement('div',{style:{padding:"1rem 1.4rem"}},
+              React.createElement('div',{style:{fontSize:10,letterSpacing:"0.15em",textTransform:"uppercase",
+                color:C.sand,marginBottom:"0.8rem"}},"Preisübersicht"),
+              React.createElement('div',{style:{display:"flex",flexDirection:"column",gap:4}},
+                [["Bezugsstoff",prices.fabric],["Schaumstoff",prices.foam],
+                 ["Wattierung",prices.wadding],["Jersey",prices.jersey],["Extras",prices.extras]
+                ].filter(([,v])=>v>0).map(([k,v])=>
+                  React.createElement('div',{key:k,style:{display:"flex",justifyContent:"space-between"}},
+                    React.createElement('span',{style:{fontSize:12,color:C.mid}},k),
+                    React.createElement('span',{style:{fontSize:12,color:C.bark}},fmt(v))
+                  )
+                )
+              ),
+              React.createElement('div',{style:{height:1,background:"rgba(184,155,114,.15)",margin:"0.8rem 0"}}),
+              React.createElement('div',{style:{display:"flex",justifyContent:"space-between",alignItems:"baseline"}},
+                React.createElement('span',{style:{fontSize:11,color:C.mid}},"Versand"),
+                React.createElement('span',{style:{fontSize:12,color:shipping===0?C.moss:C.bark}},
+                  shipping===0?"Kostenlos ✓":fmt(shipping))
+              ),
+              React.createElement('div',{style:{display:"flex",justifyContent:"space-between",
+                alignItems:"baseline",marginTop:"0.5rem"}},
+                React.createElement('span',{style:{fontSize:13,fontWeight:600,color:C.bark}},"Gesamt"),
+                React.createElement('span',{style:{fontSize:20,fontWeight:300,color:C.sand,
+                  fontFamily:"Georgia,serif"}},fmt(prices.total+shipping))
+              ),
+              React.createElement('div',{style:{fontSize:10,color:C.mid,marginTop:3}},"inkl. 19% MwSt.")
+            )
+          ),
+
+          // In den Warenkorb Button
+          React.createElement('button',{
+            onClick: handleAddToCart,
+            style:{width:"100%",background:C.sand,color:C.bark,border:"none",
+              padding:"18px 32px",fontSize:15,fontWeight:600,cursor:"pointer",
+              letterSpacing:"0.1em",textTransform:"uppercase",
+              display:"flex",alignItems:"center",justifyContent:"center",gap:10}},
+            React.createElement('span',null,"🛒"),
+            "In den Warenkorb"
+          ),
+          React.createElement('div',{style:{fontSize:11,color:C.mid,textAlign:"center",marginTop:"0.8rem"}}),
+          React.createElement(Tip,null,
+            "Nach dem Klick wirst du direkt auf deine Wix-Warenkorbseite weitergeleitet. Die komplette Konfiguration wird dabei per URL übergeben – ohne fetch."
+          )
+        );
+      }
+
+      default: return null;
+    }
+  };
+
+  return React.createElement('div',{style:{display:"flex",height:"100vh",background:C.linen,color:C.bark,overflow:"hidden"}},
+    React.createElement('div',{style:{flex:1,padding:"2.5rem 3.5rem 4rem",overflowY:"auto",minWidth:0}},
+      success
+        ? React.createElement('div',{style:{textAlign:"center",padding:"5rem 2rem",maxWidth:500,margin:"0 auto"}},
+            React.createElement('div',{style:{width:64,height:64,borderRadius:"50%",
+              background:"rgba(76,94,72,.15)",border:"2px solid "+C.moss,
+              display:"flex",alignItems:"center",justifyContent:"center",
+              fontSize:28,margin:"0 auto 1.5rem"}},
+              "✓"
+            ),
+            React.createElement('h2',{style:{fontFamily:"Georgia,serif",fontWeight:300,
+              fontSize:"2rem",color:C.bark,marginBottom:"0.8rem"}},
+              "Zum Warenkorb hinzugefügt!"
+            ),
+            React.createElement('p',{style:{color:C.mid,fontSize:14,lineHeight:1.8,marginBottom:"2rem"}},
+              "Dein individuelles Polster wurde erfolgreich in den Warenkorb gelegt."
+            ),
+            React.createElement('button',{
+              onClick:()=>{setSuccess(false);setStep(0);setFormId("rechteck");setDims({});
+                setFabric(null);setFoamKey("none");setExtras({rz:true});setOrder({});},
+              style:{background:C.bark,color:C.chalk,padding:"12px 32px",border:"none",
+                cursor:"pointer",fontSize:12,letterSpacing:"0.1em",textTransform:"uppercase"}},
+              "Neue Konfiguration starten"
+            )
+          )
+        : React.createElement('div',null,
+            React.createElement('div',{style:{display:"flex",gap:8,marginBottom:"2.5rem",flexWrap:"wrap"}},
+              STEPS.map((s,i)=>React.createElement('div',{key:s,
+                onClick:()=>i<step&&go(i),
+                style:{display:"flex",alignItems:"center",gap:6,cursor:i<step?"pointer":"default",
+                  opacity:i>step?0.35:1}},
+                React.createElement('div',{style:{width:22,height:22,borderRadius:"50%",
+                  background:i===step?C.sand:i<step?"rgba(184,155,114,.3)":"transparent",
+                  border:`1.5px solid ${i<=step?C.sand:"rgba(184,155,114,.25)"}`,
+                  display:"flex",alignItems:"center",justifyContent:"center",
+                  fontSize:10,fontWeight:700,color:i===step?C.bark:i<step?C.sand:C.mid,
+                  flexShrink:0}},i<step?"✓":i+1),
+                React.createElement('span',{style:{fontSize:11,letterSpacing:"0.08em",textTransform:"uppercase",
+                  color:i===step?C.bark:C.mid,whiteSpace:"nowrap"}},s),
+                i<STEPS.length-1&&React.createElement('div',{style:{width:16,height:1,background:"rgba(184,155,114,.2)",marginLeft:2}})
+              ))
+            ),
+            renderStep(),
+            React.createElement('div',{style:{display:"flex",justifyContent:"space-between",marginTop:"2rem",gap:12}},
+              step>0&&React.createElement('button',{onClick:()=>go(step-1),
+                style:{background:"transparent",border:"1.5px solid rgba(184,155,114,.3)",color:C.mid,
+                  padding:"10px 24px",cursor:"pointer",fontSize:12,letterSpacing:"0.08em"}},
+                "← Zurück"),
+              step<5
+                ?React.createElement('button',{onClick:()=>canNext[step]&&go(step+1),disabled:!canNext[step],
+                    style:{background:canNext[step]?C.bark:"rgba(43,35,24,.3)",color:C.chalk,
+                      padding:"11px 28px",border:"none",cursor:canNext[step]?"pointer":"not-allowed",
+                      fontSize:12,letterSpacing:"0.1em",textTransform:"uppercase",marginLeft:"auto"}},
+                    "Weiter →")
+                :null
+            )
+          )
+    ),
+    React.createElement('div',{style:{width:360,background:C.bark,position:"sticky",top:0,
+      height:"100vh",overflowY:"auto",padding:"2rem 2rem",display:"flex",flexDirection:"column",
+      gap:"1rem",flexShrink:0}},
+      React.createElement('div',{style:{fontSize:10,letterSpacing:"0.2em",textTransform:"uppercase",
+        color:"rgba(184,155,114,.5)",marginBottom:"0.5rem"}},"Deine Konfiguration"),
+      React.createElement('div',{style:{display:"flex",alignItems:"center",gap:12,
+        padding:"0.8rem",background:"rgba(255,255,255,.04)",marginBottom:"0.5rem"}},
+        React.createElement('img',{src:FORM_IMAGES[formId],width:160,height:160,style:{objectFit:"contain",opacity:.9}}),
+        React.createElement('div',null,
+          React.createElement('div',{style:{fontSize:13,fontWeight:500,color:C.chalk}}),
+          React.createElement('div',{style:{fontSize:11,color:"rgba(253,250,245,.5)",marginTop:2}},cf.label)
+        )
+      ),
+      React.createElement('div',{style:{height:1,background:"rgba(184,155,114,.12)"}}),
+      React.createElement('div',{style:{display:"flex",flexDirection:"column",gap:6}},
+        [["Bezugsstoff",fab?`${fab.n} (${fmt(fab.p)}/lm)`:"–"],
+         ["Schaumstoff",foam.name],
+         ["Extras",Object.entries(extras).filter(([k,v])=>v&&k!=="rz").map(([k])=>EXTRAS.find(e=>e.id===k)?.label).filter(Boolean).join(", ")||"–"]
+        ].map(([k,v])=>React.createElement('div',{key:k,style:{display:"flex",justifyContent:"space-between",gap:8}},
+          React.createElement('span',{style:{fontSize:11,color:"rgba(253,250,245,.4)",flexShrink:0}},k),
+          React.createElement('span',{style:{fontSize:11,color:"rgba(253,250,245,.7)",textAlign:"right"}},v)
+        ))
+      ),
+      React.createElement('div',{style:{height:1,background:"rgba(184,155,114,.12)"}}),
+      React.createElement('div',{style:{display:"flex",flexDirection:"column",gap:4}},
+        [["Bezugsstoff",prices.fabric],["Schaumstoff",prices.foam],
+         ["Wattierung",prices.wadding],["Jersey",prices.jersey],["Extras",prices.extras]
+        ].filter(([,v])=>v>0).map(([k,v])=>React.createElement('div',{key:k,
+          style:{display:"flex",justifyContent:"space-between"}},
+          React.createElement('span',{style:{fontSize:11,color:"rgba(253,250,245,.4)"}},k),
+          React.createElement('span',{style:{fontSize:11,color:"rgba(253,250,245,.6)"}},fmt(v))
+        ))
+      ),
+      prices.total>0&&React.createElement('div',{style:{height:1,background:"rgba(184,155,114,.12)"}}),
+      React.createElement('div',{style:{display:"flex",justifyContent:"space-between",alignItems:"center"}},
+        React.createElement('span',{style:{fontSize:11,color:"rgba(253,250,245,.4)"}},"Versand"),
+        React.createElement('span',{style:{fontSize:11,color:shipping===0?C.moss:"rgba(253,250,245,.6)"}},
+          prices.total===0?"–":shipping===0?"Kostenlos ✓":fmt(shipping))
+      ),
+      React.createElement('div',{style:{height:1,background:"rgba(184,155,114,.12)"}}),
+      React.createElement('div',{style:{display:"flex",justifyContent:"space-between",alignItems:"baseline"}},
+        React.createElement('span',{style:{fontSize:11,letterSpacing:"0.12em",textTransform:"uppercase",
+          color:"rgba(253,250,245,.4)"}},"Gesamt"),
+        React.createElement('span',{style:{fontSize:22,fontWeight:300,color:prices.total>0?C.sand:"rgba(253,250,245,.2)",
+          fontFamily:"Georgia,serif"}},prices.total>0?fmt(prices.total+shipping):"–")
+      ),
+      React.createElement('div',{style:{marginTop:"auto",display:"flex",flexDirection:"column",gap:4}},
+        ["OEKO-TEX® zertifiziert","±2 mm Präzision","Made in Germany","Kostenlose Muster"].map(t=>
+          React.createElement('div',{key:t,style:{fontSize:10,color:"rgba(253,250,245,.3)",
+            display:"flex",alignItems:"center",gap:5}},
+            React.createElement('span',{style:{color:C.sand,flexShrink:0}},"✓"),t
+          )
+        )
+      )
+      )
+    );
 }
 
-function buildConfig(){
-
- return {
-   form: document.getElementById("form").value,
-   total: Number(document.getElementById("price").value),
-   fabric: {name: document.getElementById("fabric").value},
-   foam: {name: document.getElementById("foam").value},
-   extras: [],
-   beschreibung: document.getElementById("description").value
- };
-
-}
-
-async function sendToWix(){
-
- const config = buildConfig();
-
- const url = CONFIG.WIX_BASE_URL + CONFIG.SAVE_CONFIG_ENDPOINT;
-
- log("Sende Konfiguration...");
- log(JSON.stringify(config));
-
- try{
-
-   const res = await fetch(url,{
-     method:"POST",
-     headers:{
-       "Content-Type":"application/json"
-     },
-     body: JSON.stringify(config)
-   });
-
-   const result = await res.json();
-
-   log("Antwort: " + JSON.stringify(result));
-
-   if(!result.success){
-     throw new Error(result.error || "Fehler");
-   }
-
-   const redirect = CONFIG.WIX_BASE_URL +
-     CONFIG.REDIRECT_PATH +
-     "?configId=" +
-     result.configId;
-
-   log("Weiterleitung zu: " + redirect);
-
-   window.location.href = redirect;
-
- }catch(err){
-
-   log("FEHLER: " + err.message);
-   alert("Fehler beim Übertragen der Konfiguration");
-
- }
-
-}
-
-document.getElementById("cartBtn").addEventListener("click",sendToWix);
-
+ReactDOM.createRoot(document.getElementById("root")).render(React.createElement(App));
 </script>
-
 </body>
 </html>
