@@ -477,31 +477,13 @@ function App() {
         };
 
         const handleAddToCart = () => {
+          console.log("🛒 IN DEN WARENKORB GEKLICKT");
+          alert("SENDE POLSTER24_ADD_TO_CART");
 
-  console.log("🛒 IN DEN WARENKORB GEKLICKT");
-  alert("SENDE POLSTER24_ADD_TO_CART");
-
-  const payload = {
-    type: "POLSTER24_ADD_TO_CART",
-    data: cartData
-  };
-
-  try {
-
-    const message = JSON.stringify(payload);
-
-    if (window.top) {
-      window.top.postMessage(message, "*");
-      console.log("✓ Nachricht an TOP Window gesendet:", message);
-    }
-
-  } catch (e) {
-
-    console.error("✗ postMessage Fehler:", e);
-
-  }
-
-};
+          const payload = {
+            type: "POLSTER24_ADD_TO_CART",
+            data: cartData
+          };;
 
           console.log("CartData:", JSON.stringify({
             form: cartData.form,
