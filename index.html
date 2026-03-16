@@ -1,64 +1,133 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Wix Heartbeat Test</title>
-<style>
-body{font-family:Arial,sans-serif;padding:20px;background:#f5f5f5}
-button{padding:12px 16px;font-size:16px;cursor:pointer;margin-right:8px}
-#log{margin-top:16px;background:#fff;border:1px solid #ccc;padding:12px;white-space:pre-wrap;font-size:14px;max-height:320px;overflow:auto}
-.badge{display:inline-block;padding:4px 8px;background:#eee;border-radius:6px;margin-bottom:10px}
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Polster-Konfigurator – Wix Fetch Version</title>
+  <style>
+    body{font-family:Arial,sans-serif;background:#f6f6f6;margin:0;padding:24px;color:#222}
+    .wrap{max-width:860px;margin:0 auto;background:#fff;border:1px solid #ddd;border-radius:12px;padding:24px}
+    h1{margin-top:0}
+    label{display:block;font-weight:bold;margin-top:14px;margin-bottom:6px}
+    input,select,textarea{width:100%;padding:10px;border:1px solid #bbb;border-radius:8px;box-sizing:border-box}
+    button{margin-top:20px;padding:12px 18px;border:0;border-radius:10px;background:#222;color:#fff;cursor:pointer}
+    #log{margin-top:20px;border:1px solid #ddd;background:#fafafa;padding:12px;border-radius:8px;white-space:pre-wrap;font-size:14px}
+  </style>
 </head>
 <body>
-<div class="badge" id="status">Startet…</div><br/>
-<button id="sendBtn">Klick senden</button>
-<button id="pingBtn">Ping senden</button>
-<div id="log">HTML geladen...\n</div>
+<div class="wrap">
+
+<h1>Polster Konfigurator</h1>
+
+<label>Form</label>
+<select id="form">
+<option>Rechteck – Würfel</option>
+<option>Eckkissen</option>
+<option>Trapez</option>
+</select>
+
+<label>Bezugsstoff</label>
+<select id="fabric">
+<option>Soleo 6</option>
+<option>Soleo 15</option>
+<option>Soleo 2</option>
+</select>
+
+<label>Schaumstoff</label>
+<select id="foam">
+<option>Kein Schaumstoff</option>
+<option>RG35</option>
+<option>RG40</option>
+</select>
+
+<label>Preis</label>
+<input id="price" type="number" value="52.49" step="0.01">
+
+<label>Beschreibung</label>
+<textarea id="description">Individuell konfiguriertes Polster</textarea>
+
+<button id="cartBtn">In den Warenkorb</button>
+
+<div id="log">Konfigurator geladen...\n</div>
+
+</div>
 
 <script>
+
+const CONFIG = {
+  WIX_BASE_URL: "https://service1513.wixstudio.com",
+  SAVE_CONFIG_ENDPOINT: "/_functions/saveConfig",
+  REDIRECT_PATH: "/konfigurator-warenkorb"
+};
+
 const logEl = document.getElementById("log");
-const statusEl = document.getElementById("status");
-let seq = 0;
 
 function log(msg){
-  console.log(msg);
-  logEl.textContent += msg + "\n";
-  logEl.scrollTop = logEl.scrollHeight;
+ console.log(msg);
+ logEl.textContent += msg + "\n";
 }
 
-function send(type, extra = {}){
-  seq += 1;
-  const payload = { type, seq, source: "heartbeat-test", ts: Date.now(), ...extra };
-  const message = JSON.stringify(payload);
-  window.parent.postMessage(message, "*");
-  log("GESENDET: " + message);
+function buildConfig(){
+
+ return {
+   form: document.getElementById("form").value,
+   total: Number(document.getElementById("price").value),
+   fabric: {name: document.getElementById("fabric").value},
+   foam: {name: document.getElementById("foam").value},
+   extras: [],
+   beschreibung: document.getElementById("description").value
+ };
+
 }
 
-window.addEventListener("message", (event) => {
-  log("VON WIX: " + JSON.stringify(event.data));
-  statusEl.textContent = "Antwort von Wix empfangen";
-});
+async function sendToWix(){
 
-window.onload = function(){
-  statusEl.textContent = "Fenster geladen";
-  log("Fenster geladen");
-  send("POLSTER24_READY");
-  setInterval(() => send("POLSTER24_HEARTBEAT"), 1500);
-};
+ const config = buildConfig();
 
-document.getElementById("sendBtn").onclick = function(){
-  statusEl.textContent = "Klick ausgelöst";
-  send("POLSTER24_ADD_TO_CART", {
-    data: { form: "Testform", total: 12.34, fabric: "Teststoff", foam: "Testschaum" }
-  });
-};
+ const url = CONFIG.WIX_BASE_URL + CONFIG.SAVE_CONFIG_ENDPOINT;
 
-document.getElementById("pingBtn").onclick = function(){
-  statusEl.textContent = "Ping ausgelöst";
-  send("POLSTER24_PING");
-};
+ log("Sende Konfiguration...");
+ log(JSON.stringify(config));
+
+ try{
+
+   const res = await fetch(url,{
+     method:"POST",
+     headers:{
+       "Content-Type":"application/json"
+     },
+     body: JSON.stringify(config)
+   });
+
+   const result = await res.json();
+
+   log("Antwort: " + JSON.stringify(result));
+
+   if(!result.success){
+     throw new Error(result.error || "Fehler");
+   }
+
+   const redirect = CONFIG.WIX_BASE_URL +
+     CONFIG.REDIRECT_PATH +
+     "?configId=" +
+     result.configId;
+
+   log("Weiterleitung zu: " + redirect);
+
+   window.location.href = redirect;
+
+ }catch(err){
+
+   log("FEHLER: " + err.message);
+   alert("Fehler beim Übertragen der Konfiguration");
+
+ }
+
+}
+
+document.getElementById("cartBtn").addEventListener("click",sendToWix);
+
 </script>
+
 </body>
 </html>
