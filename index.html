@@ -191,9 +191,21 @@ const DimInput = ({label,value,onChange,isPrice,hint}) => {
 };
 
 function App() {
-  const [isMobile,  setIsMobile] = useState(()=>{ try{ return window.innerWidth<=768; }catch(e){ return false; } });
+  // ── ALL STATES FIRST ──
+  const [isMobile,   setIsMobile]  = useState(()=>{ try{ return window.innerWidth<=768; }catch(e){ return false; } });
   const [cartError,  setCartError]  = useState(null);
   const [cartLoading,setCartLoading]= useState(false);
+  const [step,       setStep]      = useState(0);
+  const [formId,     setFormId]    = useState("rechteck");
+  const [dims,       setDims]      = useState({});
+  const [foamKey,    setFoamKey]   = useState("none");
+  const [fabric,     setFabric]    = useState(null);
+  const [fabFilter,  setFabFilter] = useState("alle");
+  const [extras,     setExtras]    = useState({rz:true});
+  const [success,    setSuccess]   = useState(false);
+  const [order,      setOrder]     = useState({fn:"",ln:"",email:"",phone:"",addr:"",pay:"",note:""});
+
+  // ── ALL EFFECTS AFTER STATES ──
   React.useEffect(()=>{
     const handler = ()=>setIsMobile(window.innerWidth<=768);
     window.addEventListener('resize',handler);
@@ -231,15 +243,6 @@ function App() {
     observer.observe(document.body);
     return ()=>observer.disconnect();
   },[step, success]);
-  const [step,      setStep]     = useState(0);
-  const [formId,    setFormId]   = useState("rechteck");
-  const [dims,      setDims]     = useState({});
-  const [foamKey,   setFoamKey]  = useState("none");
-  const [fabric,    setFabric]   = useState(null);
-  const [fabFilter, setFabFilter]= useState("alle");
-  const [extras,    setExtras]   = useState({rz:true});
-  const [success,   setSuccess]  = useState(false);
-  const [order,     setOrder]    = useState({fn:"",ln:"",email:"",phone:"",addr:"",pay:"",note:""});
 
   const cf  = FORMS.find(f=>f.id===formId)||FORMS[0];
   const foam= FOAM_TYPES[foamKey];
