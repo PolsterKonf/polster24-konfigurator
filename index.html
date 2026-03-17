@@ -4,6 +4,7 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>Polster24 – Konfigurator</title>
+<script src="images_data.js"></script>
 <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -68,27 +69,7 @@ const FORMS = [
 ];
 
 
-const FORM_IMAGES = {
-  "rechteck": "images/rechteck.png",
-  "eck-abschnitt": "images/eck-abschnitt.png",
-  "rechteck-abschnitt": "images/rechteck-abschnitt.png",
-  "dreieck-abschnitt": "images/dreieck-abschnitt.png",
-  "rechteck-kl-eck": "images/rechteck-kl-eck.png",
-  "rechteck-zwei-eck": "images/rechteck-zwei-eck.png",
-  "u-form": "images/u-form.png",
-  "l-form": "images/l-form.png",
-  "eckkissen": "images/eckkissen.png",
-  "achteck": "images/achteck.png",
-  "sechseck": "images/sechseck.png",
-  "fuenfeck": "images/fuenfeck.png",
-  "trapez": "images/trapez.png",
-  "dreieck-gleich": "images/dreieck-gleich.png",
-  "dreieck-recht": "images/dreieck-recht.png",
-  "rechteck-schraeg": "images/rechteck-schraeg.png",
-  "rechteck-zwei-schraeg": "images/rechteck-zwei-schraeg.png",
-  "rechteck-vier-eck": "images/rechteck-vier-eck.png",
-  "scheibe": "images/scheibe.png",
-};
+const FORM_IMAGES = window.FORM_IMAGES || {};
 
 
 
