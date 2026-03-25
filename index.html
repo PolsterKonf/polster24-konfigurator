@@ -308,44 +308,76 @@ const FabricLightbox = ({fabric, onClose}) => {
     return () => document.removeEventListener('keydown', handler);
   }, [onClose]);
 
+  const detailRows = entries.length > 0
+    ? entries.map(([key, val]) =>
+        React.createElement('div', {
+          key,
+          style: {display: 'flex', gap: 10, alignItems: 'flex-start'}
+        },
+          React.createElement('span', {
+            style: {fontSize: 14, flexShrink: 0, width: 22}
+          }, PROP_ICONS[key] || '•'),
+          React.createElement('div', null,
+            React.createElement('div', {
+              style: {fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase', color: C.mid, marginBottom: 1}
+            }, PROP_LABELS[key] || key),
+            React.createElement('div', {
+              style: {fontSize: 13, color: C.bark}
+            }, String(val))
+          )
+        )
+      )
+    : [
+        React.createElement('p', {
+          key: 'empty',
+          style: {fontSize: 13, color: C.mid}
+        }, 'Keine weiteren Eigenschaften hinterlegt.')
+      ];
+
   return React.createElement('div', {
     className: 'lightbox-overlay',
-    onClick: (e) => { if(e.target === e.currentTarget) onClose(); }
+    onClick: (e) => { if (e.target === e.currentTarget) onClose(); }
   },
-    React.createElement('div', {className: 'lightbox-box'},
+    React.createElement('div', {
+      className: 'lightbox-box',
+      onClick: (e) => e.stopPropagation()
+    },
       React.createElement('button', {className: 'lightbox-close', onClick: onClose}, '✕'),
       React.createElement('div', {style: {marginBottom: '1.2rem'}},
         React.createElement(FabricPreview, {fabric, size: 220}),
-        React.createElement('div', {style: {height: 12}},),
-        React.createElement('div', {style: {fontSize: 10, letterSpacing: '0.15em', textTransform: 'uppercase',
-          color: C.sand, marginBottom: 4}}, 'Stoffdetails'),
-        React.createElement('h3', {style: {fontFamily: 'Georgia,serif', fontWeight: 300,
-          fontSize: '1.4rem', color: C.bark}}, fabric.n),
-        React.createElement('div', {style: {fontSize: 11, color: C.mid, marginTop: 2}},
-          getFabricCategoryLabel(fabric), ' · ', fmt(fabric.p), '/lm')
+        React.createElement('div', {style: {height: 12}}),
+        React.createElement('div', {
+          style: {fontSize: 10, letterSpacing: '0.15em', textTransform: 'uppercase', color: C.sand, marginBottom: 4}
+        }, 'Stoffdetails'),
+        React.createElement('h3', {
+          style: {fontFamily: 'Georgia,serif', fontWeight: 300, fontSize: '1.4rem', color: C.bark}
+        }, fabric?.n || 'Stoff'),
+        React.createElement('div', {
+          style: {fontSize: 11, color: C.mid, marginTop: 2}
+        }, `${getFabricCategoryLabel(fabric)} · ${fmt(Number(fabric?.p || 0))}/lm`)
       ),
-      React.createElement('div', {style: {height: 1, background: 'rgba(184,155,114,.15)', marginBottom: '1rem'}},),
-      entries.length > 0
-        ? React.createElement('div', {style: {display: 'flex', flexDirection: 'column', gap: 10}},
-            entries.map(([key, val]) =>
-              React.createElement('div', {key, style: {display: 'flex', gap: 10, alignItems: 'flex-start'}},
-                React.createElement('span', {style: {fontSize: 14, flexShrink: 0, width: 22}},
-                  PROP_ICONS[key] || '•'),
-                React.createElement('div', null,
-                  React.createElement('div', {style: {fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase',
-                    color: C.mid, marginBottom: 1}}, PROP_LABELS[key] || key),
-                  React.createElement('div', {style: {fontSize: 13, color: C.bark}}, val)
-                )
-              )
-            )
-          )
-        : React.createElement('p', {style: {fontSize: 13, color: C.mid}}, 'Keine weiteren Eigenschaften hinterlegt.'),
-      React.createElement('div', {style: {height: 1, background: 'rgba(184,155,114,.15)', margin: '1.2rem 0'}},),
+      React.createElement('div', {
+        style: {height: 1, background: 'rgba(184,155,114,.15)', marginBottom: '1rem'}
+      }),
+      React.createElement('div', {
+        style: {display: 'flex', flexDirection: 'column', gap: 10}
+      }, ...detailRows),
+      React.createElement('div', {
+        style: {height: 1, background: 'rgba(184,155,114,.15)', margin: '1.2rem 0'}
+      }),
       React.createElement('button', {
         onClick: onClose,
-        style: {width: '100%', background: C.bark, color: C.chalk, border: 'none',
-          padding: '10px', fontSize: 12, letterSpacing: '0.1em', textTransform: 'uppercase',
-          cursor: 'pointer'}
+        style: {
+          width: '100%',
+          background: C.bark,
+          color: C.chalk,
+          border: 'none',
+          padding: '10px',
+          fontSize: 12,
+          letterSpacing: '0.1em',
+          textTransform: 'uppercase',
+          cursor: 'pointer'
+        }
       }, 'Schließen')
     )
   );
