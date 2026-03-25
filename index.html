@@ -203,7 +203,7 @@ const EXTRAS = [
   {id:"rz",  label:"Reißverschluss",        icon:"🔐",desc:"Abnehmbarer Bezug – inklusive.",          perM2:false,price:0},
   {id:"watt",label:"Wattierung",             icon:"☁️", desc:"Weichere Optik durch Watteschicht.",    perM2:true, price:8},
   {id:"trik",label:"Trikotierung (Jersey)",  icon:"🧤",desc:"Schützende Jerseyschicht um den Kern.", perM2:true, price:4},
-  {id:"anti",label:"Anti-Rutsch Unterseite", icon:"🛑",desc:"Ideal für glatte Stühle und Bänke.",    perM2:false,price:3},
+  {id:"anti",label:"Anti-Rutsch Unterseite", icon:"🛑",desc:"Ideal für glatte Stühle und Bänke.",    perM2:true, price:3},
 ];
 
 const STEPS = ["Form","Maße","Stoff","Schaum","Extras","Warenkorb"];
@@ -459,7 +459,9 @@ function App() {
     const foamCost = foam.density>0 ? Math.round(cf.foamFactor*FOAM_PRICE_PER_KG*foam.density*volume*100)/100 : 0;
     const jerseyCost  = extras.trik ? Math.round(4*surface*100)/100 : 0;
     const waddingCost = extras.watt ? Math.round(8*surface*100)/100 : 0;
-    const otherExtras = EXTRAS.filter(e=>e.id!=="watt"&&e.id!=="trik"&&extras[e.id]).reduce((s,e)=>s+e.price,0);
+    const otherExtras = EXTRAS
+      .filter(e=>e.id!=="watt"&&e.id!=="trik"&&extras[e.id])
+      .reduce((s,e)=>s+(e.perM2 ? Math.round(e.price*surface*100)/100 : e.price),0);
     const total = fabricCost+foamCost+jerseyCost+waddingCost+otherExtras;
     return {fabric:fabricCost,foam:foamCost,jersey:jerseyCost,wadding:waddingCost,
       extras:otherExtras,total:Math.round(total*100)/100,
