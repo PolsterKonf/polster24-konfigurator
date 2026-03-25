@@ -440,17 +440,18 @@ function App() {
         React.createElement(SH,{n:1,
           title:React.createElement('span',null,"Wähle die ",React.createElement('em',{style:{color:C.sand,fontStyle:"italic"}},"Form"),React.createElement('br'),"deines Polsters."),
           sub:"Klicke auf die passende Form. Die Maße gibst du im nächsten Schritt ein."}),
-        React.createElement('div',{style:{display:"grid",gridTemplateColumns:isMobile?"repeat(2,1fr)":"repeat(3,1fr)",gap:1,
+        React.createElement('div',{style:{display:"grid",gridTemplateColumns:isMobile?"repeat(2,minmax(0,1fr))":"repeat(3,minmax(0,1fr))",gap:isMobile?1:8,
           background:"rgba(184,155,114,.1)",marginBottom:"1.5rem"}},
           FORMS.map(f=>React.createElement('div',{key:f.id,
             onClick:()=>{setFormId(f.id);setDims({});},
-            style:{background:formId===f.id?C.linen2:C.chalk,padding:"1rem .7rem",
+            style:{background:formId===f.id?C.linen2:C.chalk,padding:isMobile?"1rem .7rem":"1.35rem 1rem",
+              minHeight:isMobile?null:190,
               cursor:"pointer",textAlign:"center",transition:"all .2s",position:"relative",
               border:`2px solid ${formId===f.id?C.sand:"transparent"}`}},
             formId===f.id&&React.createElement('div',{style:{position:"absolute",top:4,right:6,
               fontSize:10,color:C.sand,fontWeight:700}},"✓"),
-            React.createElement(FormPreview,{formId:f.id,size:100,style:{display:"block",margin:"0 auto 8px"}}),
-            React.createElement('div',{style:{fontSize:10,fontWeight:500,color:C.bark,lineHeight:1.35}},f.label)
+            React.createElement(FormPreview,{formId:f.id,size:isMobile?100:132,style:{display:"block",margin:"0 auto 12px"}}),
+            React.createElement('div',{style:{fontSize:isMobile?10:11,fontWeight:500,color:C.bark,lineHeight:1.4}},f.label)
           ))
         ),
         React.createElement(Tip,null,"Wähle die Form die deinem Polster am nächsten kommt.")
