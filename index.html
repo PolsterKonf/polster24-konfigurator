@@ -171,13 +171,23 @@ const PROP_ICONS = {
   "Wattierung": "☁️",
 };
 
-const CAT_LABELS = {
-  "alle": "Alle",
-  "indoor": "Indoor",
-  "outdoor": "Outdoor",
-  "nautic": "Nautic",
-  "schlafen": "Schlafen",
-};
+const getFabricCategoryLabel = (fabric) => ((fabric?.n || "").trim().split(/\s+/)[0] || "Sonstige");
+const getFabricCategoryKey = (fabric) => getFabricCategoryLabel(fabric).toLocaleLowerCase("de-DE");
+const FABRIC_CATEGORY_OPTIONS = (() => {
+  const categories = [];
+  const seen = new Set();
+
+  FABRICS.forEach((fabric) => {
+    const key = getFabricCategoryKey(fabric);
+    if (!key || seen.has(key)) return;
+    seen.add(key);
+    categories.push({ key, label: getFabricCategoryLabel(fabric) });
+  });
+
+  categories.sort((a, b) => a.label.localeCompare(b.label, "de-DE", { sensitivity: "base" }));
+  categories.push({ key: "alle", label: "Alle" });
+  return categories;
+})();
 
 const EXTRAS = [
   {id:"rz",  label:"Reißverschluss",        icon:"🔐",desc:"Abnehmbarer Bezug – inklusive.",          perM2:false,price:0},
@@ -480,8 +490,7 @@ function App() {
       }
 
       case 2: {
-        const filtered = fabFilter==="alle" ? FABRICS : FABRICS.filter(f=>f.cat===fabFilter);
-        const cats = ["alle","indoor","outdoor","nautic","schlafen"];
+        const filtered = fabFilter==="alle" ? FABRICS : FABRICS.filter(f=>getFabricCategoryKey(f)===fabFilter);
         return React.createElement('div',null,
           React.createElement(SH,{n:3,
             title:React.createElement('span',null,"Wähle deinen",React.createElement('br'),React.createElement('em',{style:{color:C.sand,fontStyle:"italic"}},"Wunschstoff.")),
@@ -489,12 +498,12 @@ function App() {
 
           // Category filter
           React.createElement('div',{style:{display:"flex",gap:6,marginBottom:"1rem",flexWrap:"wrap"}},
-            cats.map(cat=>
-              React.createElement('button',{key:cat,onClick:()=>setFabFilter(cat),
+            FABRIC_CATEGORY_OPTIONS.map(cat=>
+              React.createElement('button',{key:cat.key,onClick:()=>setFabFilter(cat.key),
                 style:{padding:"5px 12px",fontSize:11,cursor:"pointer",letterSpacing:"0.08em",
-                  textTransform:"uppercase",border:`1.5px solid ${fabFilter===cat?C.sand:"rgba(184,155,114,.2)"}`,
-                  background:fabFilter===cat?C.sand:"transparent",color:fabFilter===cat?C.bark:C.mid}},
-                CAT_LABELS[cat]||cat
+                  textTransform:"uppercase",border:`1.5px solid ${fabFilter===cat.key?C.sand:"rgba(184,155,114,.2)"}`,
+                  background:fabFilter===cat.key?C.sand:"transparent",color:fabFilter===cat.key?C.bark:C.mid}},
+                cat.label
               )
             )
           ),
