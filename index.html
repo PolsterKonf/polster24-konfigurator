@@ -129,6 +129,20 @@ const FORMS = [
 
 const FORM_IMAGES = window.FORM_IMAGES || {};
 const FABRICS = window.FABRIC_DATA || [];
+const FABRIC_IMAGE_BASE_URL = (window.FABRIC_IMAGE_BASE_URL || "https://raw.githubusercontent.com/PolsterKonf/polster24-konfigurator/refs/heads/main/fabrics").replace(/\/+$/,"");
+
+const getFabricImageCandidates = (fabric) => {
+  if (!fabric) return [];
+  const custom = [fabric.img, fabric.image].filter(Boolean);
+  const hasConfiguredGithubBase =
+    FABRIC_IMAGE_BASE_URL &&
+    !FABRIC_IMAGE_BASE_URL.includes("DEIN-BENUTZERNAME/DEIN-REPO");
+
+  if (!hasConfiguredGithubBase) return custom;
+
+  const exts = ["jpg","jpeg","png","webp"];
+  return [...custom, ...exts.map(ext => `${FABRIC_IMAGE_BASE_URL}/${fabric.id}.${ext}`)];
+};
 
 const PROP_LABELS = {
   "Zusammensetzung": "Zusammensetzung",
@@ -212,6 +226,37 @@ const DimInput = ({label,value,onChange,isPrice,hint}) => {
   );
 };
 
+const FabricPreview = ({fabric, size=56}) => {
+  const candidates = getFabricImageCandidates(fabric);
+  const [idx, setIdx] = useState(0);
+
+  useEffect(() => {
+    setIdx(0);
+  }, [fabric?.id]);
+
+  const src = candidates[idx];
+  if (!src) {
+    return React.createElement('div',{style:{
+      width:size,height:size,flexShrink:0,
+      background:"rgba(184,155,114,.2)",border:"1px solid rgba(0,0,0,.08)",
+      display:"flex",alignItems:"center",justifyContent:"center",fontSize:Math.round(size*0.42),
+      color:C.mid
+    }},"🎨");
+  }
+
+  return React.createElement('img',{
+    src,
+    alt:fabric?.n || "Stoffbild",
+    width:size,
+    height:size,
+    onError:()=>setIdx(current => current + 1 < candidates.length ? current + 1 : current),
+    style:{
+      width:size,height:size,flexShrink:0,display:"block",objectFit:"cover",
+      background:"rgba(184,155,114,.08)",border:"1px solid rgba(0,0,0,.08)"
+    }
+  });
+};
+
 // Info Lightbox
 const FabricLightbox = ({fabric, onClose}) => {
   const props = fabric.props || {};
@@ -230,6 +275,8 @@ const FabricLightbox = ({fabric, onClose}) => {
     React.createElement('div', {className: 'lightbox-box'},
       React.createElement('button', {className: 'lightbox-close', onClick: onClose}, '✕'),
       React.createElement('div', {style: {marginBottom: '1.2rem'}},
+        React.createElement(FabricPreview, {fabric, size: 220}),
+        React.createElement('div', {style: {height: 12}},),
         React.createElement('div', {style: {fontSize: 10, letterSpacing: '0.15em', textTransform: 'uppercase',
           color: C.sand, marginBottom: 4}}, 'Stoffdetails'),
         React.createElement('h3', {style: {fontFamily: 'Georgia,serif', fontWeight: 300,
@@ -453,10 +500,7 @@ function App() {
                 style:{background:on?C.linen2:C.chalk,padding:"0.9rem 1rem",cursor:"pointer",
                   border:`2px solid ${on?C.sand:"transparent"}`,transition:"all .2s",
                   display:"flex",alignItems:"center",gap:10}},
-                React.createElement('div',{style:{width:24,height:24,borderRadius:2,flexShrink:0,
-                  background:"rgba(184,155,114,.2)",border:`1px solid rgba(0,0,0,.08)`,
-                  display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,color:C.mid}},
-                  "🎨"),
+                React.createElement(FabricPreview,{fabric:f,size:52}),
                 React.createElement('div',{style:{flex:1,minWidth:0}},
                   React.createElement('div',{style:{fontSize:12,fontWeight:on?500:300,color:C.bark,
                     whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}},f.n),
@@ -621,9 +665,7 @@ function App() {
               React.createElement('div',null,
                 React.createElement('div',{style:{fontSize:10,letterSpacing:"0.15em",textTransform:"uppercase",color:C.sand,marginBottom:4}},"Bezugsstoff"),
                 React.createElement('div',{style:{display:"flex",alignItems:"center",gap:10}},
-                  React.createElement('div',{style:{width:24,height:24,background:"rgba(184,155,114,.3)",borderRadius:2,
-                    border:"1px solid rgba(0,0,0,.1)",flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12}},
-                    "🎨"),
+                  React.createElement(FabricPreview,{fabric:fab,size:24}),
                   React.createElement('span',{style:{fontSize:13,color:C.bark}},fab.n)
                 )
               ),
