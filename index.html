@@ -469,7 +469,16 @@ function App() {
   const shipping = prices.total>0 ? (prices.total>=89?0:4.50) : 0;
   const dimsOK = cf.sides.every(k=>(dims[k]||"")&&parseFloat(dims[k])>0);
   const canNext = [true,dimsOK,!!fabric,true,true,true];
-  const go=n=>{if(n>=0&&n<=5)setStep(n);};
+  const go=n=>{
+    if(n>=0&&n<=5){
+      setStep(n);
+      try{
+        window.scrollTo({top:0,behavior:"smooth"});
+      }catch(e){
+        window.scrollTo(0,0);
+      }
+    }
+  };
   const setDim=(k,v)=>setDims(d=>({...d,[k]:v}));
 
   const openLightbox = useCallback((e, fab) => {
