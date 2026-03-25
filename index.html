@@ -39,6 +39,16 @@ input[type=number]{-moz-appearance:textfield}
   font-size:18px;cursor:pointer;color:#8A7D6A;line-height:1;
 }
 .lightbox-close:hover{color:#2B2318}
+.sidebar-form-preview{
+  display:block;
+  margin:0 auto;
+  transform:scale(1);
+  transform-origin:center;
+  transition:transform .18s ease;
+}
+.sidebar-form-preview:hover{
+  transform:scale(1.14);
+}
 
 /* Info button */
 .info-btn {
@@ -276,7 +286,7 @@ const FabricPreview = ({fabric, size=56}) => {
   });
 };
 
-const FormPreview = ({formId, size=100, style={}}) => {
+const FormPreview = ({formId, size=100, style={}, className=""}) => {
   const candidates = getFormImageCandidates(formId);
   const [idx, setIdx] = useState(0);
 
@@ -288,6 +298,7 @@ const FormPreview = ({formId, size=100, style={}}) => {
   if (!src) return null;
 
   return React.createElement('img',{
+    className,
     src,
     alt:formId,
     width:size,
@@ -894,7 +905,7 @@ function App() {
         color:"rgba(184,155,114,.5)",marginBottom:"0.5rem"}},"Deine Konfiguration"),
       React.createElement('div',{style:{display:"flex",alignItems:"center",gap:12,
         padding:"0.8rem",background:"rgba(255,255,255,.04)",marginBottom:"0.5rem"}},
-        React.createElement(FormPreview,{formId,size:160,style:{opacity:.9}}),
+        React.createElement(FormPreview,{formId,size:160,style:{opacity:.9},className:"sidebar-form-preview"}),
         React.createElement('div',null,
           React.createElement('div',{style:{fontSize:11,color:"rgba(253,250,245,.5)",marginTop:2}},cf.label)
         )
