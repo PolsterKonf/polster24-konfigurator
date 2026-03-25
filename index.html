@@ -118,6 +118,28 @@ const getFormImageCandidates = (formId) => {
 
 const getFormImageSrc = (formId) => getFormImageCandidates(formId)[0] || "";
 
+const probeImageUrl = (url) => new Promise((resolve) => {
+  if (!url) {
+    resolve(false);
+    return;
+  }
+  const img = new Image();
+  img.onload = () => resolve(true);
+  img.onerror = () => resolve(false);
+  img.src = url;
+});
+
+const resolveFirstWorkingImage = async (candidates) => {
+  for (const url of candidates) {
+    if (await probeImageUrl(url)) return url;
+  }
+  return "";
+};
+
+const resolveFormImageSrc = async (formId) => (
+  resolveFirstWorkingImage(getFormImageCandidates(formId))
+);
+
 const getFabricImageCandidates = (fabric) => {
   if (!fabric) return [];
   const custom = [fabric.img, fabric.image].filter(Boolean);
@@ -632,18 +654,18 @@ function App() {
           `💰 Gesamt: ${fmt(prices.total+shipping)}`,
         ].filter(l=>l!=="").join("\n");
 
-        const cartData = {
-          form:cf.label,formId,dims,
-          fabric:fab?{id:fabric,name:fab.n,price:fab.p}:null,
-          foam:{id:foamKey,name:foam.name,density:foam.density},
-          extras:extraLabels,prices,
-          total:Math.round((prices.total+shipping)*100)/100,
-          shipping,beschreibung,
-          image:getFormImageSrc(formId),
-        };
-
-        const handleAddToCart = () => {
+        const handleAddToCart = async () => {
           setCartError(null);setCartLoading(true);
+          const resolvedFormImage = await resolveFormImageSrc(formId);
+          const cartData = {
+            form:cf.label,formId,dims,
+            fabric:fab?{id:fabric,name:fab.n,price:fab.p}:null,
+            foam:{id:foamKey,name:foam.name,density:foam.density},
+            extras:extraLabels,prices,
+            total:Math.round((prices.total+shipping)*100)/100,
+            shipping,beschreibung,
+            image:resolvedFormImage,
+          };
           window.parent.postMessage({type:"POLSTER24_ADD_TO_CART",data:cartData},"*");
           setTimeout(()=>{setCartLoading(false);setCartError("Keine Antwort vom Server. Bitte nochmal versuchen.");},15000);
         };
