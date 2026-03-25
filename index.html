@@ -440,7 +440,7 @@ function App() {
         React.createElement(SH,{n:1,
           title:React.createElement('span',null,"Wähle die ",React.createElement('em',{style:{color:C.sand,fontStyle:"italic"}},"Form"),React.createElement('br'),"deines Polsters."),
           sub:"Klicke auf die passende Form. Die Maße gibst du im nächsten Schritt ein."}),
-        React.createElement('div',{style:{display:"grid",gridTemplateColumns:isMobile?"repeat(2,1fr)":"repeat(4,1fr)",gap:1,
+        React.createElement('div',{style:{display:"grid",gridTemplateColumns:isMobile?"repeat(2,1fr)":"repeat(3,1fr)",gap:1,
           background:"rgba(184,155,114,.1)",marginBottom:"1.5rem"}},
           FORMS.map(f=>React.createElement('div',{key:f.id,
             onClick:()=>{setFormId(f.id);setDims({});},
