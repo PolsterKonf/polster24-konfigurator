@@ -322,7 +322,7 @@ const FabricLightbox = ({fabric, onClose}) => {
         React.createElement('h3', {style: {fontFamily: 'Georgia,serif', fontWeight: 300,
           fontSize: '1.4rem', color: C.bark}}, fabric.n),
         React.createElement('div', {style: {fontSize: 11, color: C.mid, marginTop: 2}},
-          CAT_LABELS[fabric.cat] || fabric.cat, ' · ', fmt(fabric.p), '/lm')
+          getFabricCategoryLabel(fabric), ' · ', fmt(fabric.p), '/lm')
       ),
       React.createElement('div', {style: {height: 1, background: 'rgba(184,155,114,.15)', marginBottom: '1rem'}},),
       entries.length > 0
