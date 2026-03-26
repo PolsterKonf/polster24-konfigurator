@@ -355,7 +355,7 @@ const FabricLightbox = ({fabric, onClose}) => {
     },
       React.createElement('button', {className: 'lightbox-close', onClick: onClose}, '✕'),
       React.createElement('div', {style: {marginBottom: '1.2rem'}},
-        React.createElement(FabricPreview, {fabric, size: 220}),
+        React.createElement(FabricPreview, {fabric, size: 300}),
         React.createElement('div', {style: {height: 12}}),
         React.createElement('div', {
           style: {fontSize: 10, letterSpacing: '0.15em', textTransform: 'uppercase', color: C.sand, marginBottom: 4}
@@ -394,6 +394,54 @@ const FabricLightbox = ({fabric, onClose}) => {
   );
 };
 
+const FabricZoomLightbox = ({fabric, onClose}) => {
+  useEffect(() => {
+    const handler = (e) => { if (e.key === 'Escape') onClose(); };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }, [onClose]);
+
+  return React.createElement('div', {
+    className: 'lightbox-overlay',
+    onClick: (e) => { if (e.target === e.currentTarget) onClose(); }
+  },
+    React.createElement('div', {
+      className: 'lightbox-box',
+      onClick: (e) => e.stopPropagation(),
+      style: {maxWidth: 760, width: '100%'}
+    },
+      React.createElement('button', {className: 'lightbox-close', onClick: onClose}, '✕'),
+      React.createElement('div', {
+        style: {fontSize: 10, letterSpacing: '0.15em', textTransform: 'uppercase', color: C.sand, marginBottom: 8}
+      }, 'Stoffansicht'),
+      React.createElement('h3', {
+        style: {fontFamily: 'Georgia,serif', fontWeight: 300, fontSize: '1.6rem', color: C.bark, marginBottom: 6}
+      }, fabric?.n || 'Stoff'),
+      React.createElement('div', {
+        style: {fontSize: 11, color: C.mid, marginBottom: 18}
+      }, `${getFabricCategoryLabel(fabric)} · ${fmt(Number(fabric?.p || 0))}/lm`),
+      React.createElement('div', {
+        style: {
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          minHeight: 420,
+          background: 'rgba(184,155,114,.08)',
+          border: '1px solid rgba(184,155,114,.18)',
+          marginBottom: 16,
+          padding: 16
+        }
+      },
+        React.createElement(FabricPreview, {fabric, size: 520})
+      ),
+      React.createElement('div', {className: 'color-warning', style: {marginBottom: 0}},
+        React.createElement('span', null, '⚠️'),
+        React.createElement('span', null, 'Vorsicht: Abhängig von der Art und den Einstellungen des Bildschirms können die Farbtöne der Stoffe tatsächlich von den auf der Webseite präsentierten Fotos abweichen.')
+      )
+    )
+  );
+};
+
 function App() {
   const [isMobile,   setIsMobile]  = useState(()=>{ try{ return window.innerWidth<=768; }catch(e){ return false; } });
   const [cartError,  setCartError]  = useState(null);
@@ -403,11 +451,12 @@ function App() {
   const [dims,       setDims]      = useState({});
   const [foamKey,    setFoamKey]   = useState("none");
   const [fabric,     setFabric]    = useState(null);
-  const [fabFilter,  setFabFilter] = useState("alle");
+  const [fabFilter,  setFabFilter] = useState("calima");
   const [extras,     setExtras]    = useState({rz:true});
   const [success,    setSuccess]   = useState(false);
   const [order,      setOrder]     = useState({fn:"",ln:"",email:"",phone:"",addr:"",pay:"",note:""});
   const [lightboxFab, setLightboxFab] = useState(null);
+  const [zoomFab,    setZoomFab]   = useState(null);
   const mainContentRef = useRef(null);
 
   useEffect(()=>{
@@ -620,7 +669,13 @@ function App() {
                 style:{background:on?C.linen2:C.chalk,padding:"0.9rem 1rem",cursor:"pointer",
                   border:`2px solid ${on?C.sand:"transparent"}`,transition:"all .2s",
                   display:"flex",alignItems:"center",gap:10}},
-                React.createElement(FabricPreview,{fabric:f,size:52}),
+                React.createElement('button',{
+                  type:"button",
+                  onClick:(e)=>{e.stopPropagation();setZoomFab(f);},
+                  style:{border:"none",background:"transparent",padding:0,cursor:"zoom-in",display:"flex",alignItems:"center"}
+                },
+                  React.createElement(FabricPreview,{fabric:f,size:52})
+                ),
                 React.createElement('div',{style:{flex:1,minWidth:0}},
                   React.createElement('div',{style:{fontSize:12,fontWeight:on?500:300,color:C.bark,
                     whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}},f.n),
@@ -877,6 +932,7 @@ function App() {
   return React.createElement('div',{style:{display:"flex",flexDirection:isMobile?"column":"row",alignItems:isMobile?"stretch":"flex-start",minHeight:"100vh",height:"auto",background:C.linen,color:C.bark,overflow:"visible"}},
     
     // Lightbox
+    zoomFab && React.createElement(FabricZoomLightbox, {fabric:zoomFab, onClose:()=>setZoomFab(null)}),
     lightboxFab && React.createElement(FabricLightbox, {fabric:lightboxFab, onClose:()=>setLightboxFab(null)}),
 
     // Main content
