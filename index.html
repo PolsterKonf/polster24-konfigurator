@@ -423,7 +423,13 @@ const FabricZoomLightbox = ({fabric, onClose}) => {
     React.createElement('div', {
       className: 'lightbox-box',
       onClick: (e) => e.stopPropagation(),
-      style: {maxWidth: 'min(760px, calc(100vw - 2rem))', width: '100%', maxHeight: 'calc(100vh - 2rem)'}
+      style: {
+        maxWidth: 'min(760px, calc(100vw - 2rem))',
+        width: '100%',
+        maxHeight: 'calc(100vh - 2rem)',
+        display: 'flex',
+        flexDirection: 'column'
+      }
     },
       React.createElement('button', {className: 'lightbox-close', onClick: onClose}, '✕'),
       React.createElement('div', {
@@ -440,14 +446,16 @@ const FabricZoomLightbox = ({fabric, onClose}) => {
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
-          maxHeight: '60vh',
+          flex: '1 1 auto',
+          minHeight: 0,
+          maxHeight: '48vh',
           background: 'rgba(184,155,114,.08)',
           border: '1px solid rgba(184,155,114,.18)',
           marginBottom: 16,
           padding: 16
         }
       },
-        React.createElement(FabricPreview, {fabric, size: 420})
+        React.createElement(FabricPreview, {fabric, size: 320})
       ),
       React.createElement('div', {className: 'color-warning', style: {marginBottom: 0}},
         React.createElement('span', null, '⚠️'),
