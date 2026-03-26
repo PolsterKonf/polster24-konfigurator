@@ -24,13 +24,15 @@ input[type=number]{-moz-appearance:textfield}
 /* Lightbox */
 .lightbox-overlay {
   position:fixed;inset:0;background:rgba(43,35,24,.7);z-index:9999;
-  display:flex;align-items:center;justify-content:center;padding:1rem;
+  display:block;overflow-y:auto;overscroll-behavior:contain;
+  padding:clamp(16px,4vh,32px) 1rem;
   animation:fadeIn .15s ease;
 }
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 .lightbox-box {
   background:#FDFAF5;max-width:420px;width:100%;padding:1.8rem;
   position:relative;box-shadow:0 8px 40px rgba(0,0,0,.3);
+  max-height:calc(100vh - 2rem);overflow-y:auto;margin:0 auto;
   animation:slideUp .18s ease;
 }
 @keyframes slideUp{from{transform:translateY(10px);opacity:0}to{transform:translateY(0);opacity:1}}
@@ -69,6 +71,7 @@ input[type=number]{-moz-appearance:textfield}
 /* Mobile */
 @media (max-width: 768px) {
   #root { height: auto !important; }
+  .lightbox-box{padding:1.1rem;max-height:calc(100vh - 1rem)}
 }
 </style>
 </head>
@@ -314,9 +317,14 @@ const FabricLightbox = ({fabric, onClose}) => {
   const entries = Object.entries(props).filter(([,v]) => v && v !== 'NaN');
   
   useEffect(() => {
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
     const handler = (e) => { if(e.key === 'Escape') onClose(); };
     document.addEventListener('keydown', handler);
-    return () => document.removeEventListener('keydown', handler);
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      document.removeEventListener('keydown', handler);
+    };
   }, [onClose]);
 
   const detailRows = entries.length > 0
@@ -396,9 +404,14 @@ const FabricLightbox = ({fabric, onClose}) => {
 
 const FabricZoomLightbox = ({fabric, onClose}) => {
   useEffect(() => {
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
     const handler = (e) => { if (e.key === 'Escape') onClose(); };
     document.addEventListener('keydown', handler);
-    return () => document.removeEventListener('keydown', handler);
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      document.removeEventListener('keydown', handler);
+    };
   }, [onClose]);
 
   return React.createElement('div', {
