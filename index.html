@@ -24,20 +24,18 @@ input[type=number]{-moz-appearance:textfield}
 /* Lightbox */
 .lightbox-overlay {
   position:fixed;inset:0;background:rgba(43,35,24,.7);z-index:9999;
-  display:flex;align-items:center;justify-content:center;
-  overflow:auto;overscroll-behavior:contain;
-  padding:clamp(16px,4vh,32px) 1rem;
+  display:block;overscroll-behavior:contain;
   animation:fadeIn .15s ease;
 }
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 .lightbox-box {
   background:#FDFAF5;max-width:min(420px, calc(100vw - 2rem));width:100%;padding:1.8rem;
-  position:relative;box-shadow:0 8px 40px rgba(0,0,0,.3);
+  position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
+  box-shadow:0 8px 40px rgba(0,0,0,.3);
   max-height:calc(100vh - 2rem);overflow-y:auto;overflow-x:hidden;
-  margin:auto;
   animation:slideUp .18s ease;
 }
-@keyframes slideUp{from{transform:translateY(10px);opacity:0}to{transform:translateY(0);opacity:1}}
+@keyframes slideUp{from{transform:translate(-50%,-46%);opacity:0}to{transform:translate(-50%,-50%);opacity:1}}
 .lightbox-close {
   position:absolute;top:12px;right:14px;background:none;border:none;
   font-size:18px;cursor:pointer;color:#8A7D6A;line-height:1;
