@@ -4,6 +4,9 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>Polster24 – Konfigurator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
 <script>
 window.FORM_IMAGES = {};
 // Fabric data from Excel/CSV
@@ -15,11 +18,15 @@ window.FABRIC_DATA = [{"id":"calima_1","n":"Calima 1","cat":"indoor","p":15.75,"
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html,body,#root{height:100%;width:100%}
-body{font-family:'Segoe UI',sans-serif;background:#F5F0E8;-webkit-font-smoothing:antialiased;font-size:16px}
+body{
+  font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  background:linear-gradient(135deg,#FAFAF9 0%,#F5F3F0 100%);
+  color:#1A1A1A;-webkit-font-smoothing:antialiased;font-size:16px;
+}
 input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
 input[type=number]{-moz-appearance:textfield}
 ::-webkit-scrollbar{width:4px}
-::-webkit-scrollbar-thumb{background:rgba(184,155,114,.3);border-radius:4px}
+::-webkit-scrollbar-thumb{background:rgba(45,74,62,.28);border-radius:4px}
 
 /* Lightbox */
 .lightbox-overlay {
@@ -55,22 +62,22 @@ input[type=number]{-moz-appearance:textfield}
   transition:transform .18s ease;
 }
 .sidebar-form-preview:hover{
-  transform:scale(1.14);
+  transform:scale(1.1);
 }
 
 /* Info button */
 .info-btn {
-  width:16px;height:16px;border-radius:50%;border:1.5px solid rgba(184,155,114,.6);
-  background:transparent;color:#B89B72;font-size:10px;font-weight:700;
+  width:18px;height:18px;border-radius:50%;border:1px solid rgba(45,74,62,.3);
+  background:transparent;color:#2D4A3E;font-size:10px;font-weight:700;
   cursor:pointer;display:inline-flex;align-items:center;justify-content:center;
-  flex-shrink:0;line-height:1;padding:0;transition:all .15s;
+  flex-shrink:0;line-height:1;padding:0;transition:all .15s ease;
 }
-.info-btn:hover{background:#B89B72;color:#2B2318}
+.info-btn:hover{background:#2D4A3E;color:#FFFFFF}
 
 /* Color warning */
 .color-warning {
-  background:rgba(184,155,114,.08);border-left:3px solid #B89B72;
-  padding:10px 14px;font-size:11px;color:#8A7D6A;line-height:1.6;
+  background:rgba(232,228,221,.75);border-left:3px solid #C4A484;
+  padding:12px 14px;font-size:11px;color:#6B6B6B;line-height:1.7;
   margin-bottom:1rem;display:flex;gap:8px;align-items:flex-start;
 }
 
@@ -88,8 +95,8 @@ input[type=number]{-moz-appearance:textfield}
 const { useState, useMemo, useEffect, useCallback, useRef } = React;
 
 const C = {
-  linen:"#F5F0E8",linen2:"#EDE7D9",bark:"#2B2318",bark2:"#4A3D2F",
-  moss:"#4C5E48",sand:"#B89B72",sand2:"#D4B98A",chalk:"#FDFAF5",mid:"#8A7D6A",
+  linen:"#FAFAF9",linen2:"#F5F3F0",bark:"#1A1A1A",bark2:"#2D4A3E",
+  moss:"#3D5A4E",sand:"#2D4A3E",sand2:"#C4A484",chalk:"#FFFFFF",mid:"#6B6B6B",
 };
 const fmt = n => n.toFixed(2).replace(".",",") + " €";
 
@@ -221,20 +228,23 @@ const FOAM_PRICE_PER_KG = 22;
 
 // ── Components ──
 const Tip = ({children}) => (
-  React.createElement('div',{style:{background:C.linen2,borderLeft:`3px solid ${C.sand}`,
-    padding:"10px 14px",fontSize:12,color:C.mid,lineHeight:1.6,marginBottom:"1.2rem"}},children)
+  React.createElement('div',{style:{
+    background:"rgba(232,228,221,.72)",border:`1px solid rgba(196,164,132,.28)`,
+    padding:"12px 14px",fontSize:12,color:C.mid,lineHeight:1.7,marginBottom:"1.2rem",
+    borderRadius:4
+  }},children)
 );
 
 const SH = ({n,title,sub}) => (
   React.createElement('div',{style:{marginBottom:"1.8rem"}},
     React.createElement('div',{style:{fontSize:11,letterSpacing:"0.2em",textTransform:"uppercase",
-      color:C.sand,display:"flex",alignItems:"center",gap:8,marginBottom:6}},
-      React.createElement('span',{style:{width:24,height:1,background:C.sand,display:"inline-block"}}),
+      color:C.sand,display:"flex",alignItems:"center",gap:8,marginBottom:10,fontWeight:500}},
+      React.createElement('span',{style:{width:24,height:1,background:C.sand2,display:"inline-block"}}),
       `Schritt ${n} von 6`
     ),
-    React.createElement('h2',{style:{fontSize:"clamp(1.6rem,2.2vw,2.4rem)",fontWeight:300,
-      lineHeight:1.15,fontFamily:"Georgia,serif",marginBottom:6,color:C.bark}},title),
-    React.createElement('p',{style:{fontSize:13,color:C.mid,lineHeight:1.7}},sub)
+    React.createElement('h2',{style:{fontSize:"clamp(1.9rem,2.7vw,3rem)",fontWeight:300,
+      lineHeight:1.08,fontFamily:"Inter, sans-serif",letterSpacing:"-0.03em",marginBottom:10,color:C.bark,maxWidth:700}},title),
+    React.createElement('p',{style:{fontSize:15,color:C.mid,lineHeight:1.7,maxWidth:640}},sub)
   )
 );
 
@@ -565,7 +575,7 @@ function App() {
           title:React.createElement('span',null,"Wähle die ",React.createElement('em',{style:{color:C.sand,fontStyle:"italic"}},"Form"),React.createElement('br'),"deines Polsters."),
           sub:"Klicke auf die passende Form. Die Maße gibst du im nächsten Schritt ein."}),
         React.createElement('div',{style:{display:"grid",gridTemplateColumns:isMobile?"repeat(2,minmax(0,1fr))":"repeat(3,minmax(0,1fr))",gap:isMobile?1:8,
-          background:"rgba(184,155,114,.1)",marginBottom:"1.5rem"}},
+          background:"rgba(232,228,221,.75)",marginBottom:"1.5rem",borderRadius:4,overflow:"hidden"}},
           FORMS.map(f=>React.createElement('div',{key:f.id,
             onClick:()=>{setFormId(f.id);setDims({});},
             style:{background:formId===f.id?C.linen2:C.chalk,padding:isMobile?"1rem .7rem":"1.35rem 1rem",
@@ -586,9 +596,9 @@ function App() {
           React.createElement(SH,{n:2,
             title:React.createElement('span',null,"Maße für ",React.createElement('em',{style:{color:C.sand,fontStyle:"italic"}},cf.label),"."),
             sub:"Alle Maße in cm angeben. A = Dicke des Polsters."}),
-          React.createElement('div',{style:{background:C.linen2,border:"1px dashed rgba(184,155,114,.3)",
+          React.createElement('div',{style:{background:C.linen2,border:"1px dashed rgba(45,74,62,.18)",
             padding:"1.5rem",display:"flex",flexDirection:"column",alignItems:"center",
-            justifyContent:"center",marginBottom:"1.5rem",gap:8}},
+            justifyContent:"center",marginBottom:"1.5rem",gap:8,borderRadius:4}},
             React.createElement(FormPreview,{formId,size:isMobile?220:360}),
             cf.sides.every(k=>dims[k])&&React.createElement('div',{style:{fontSize:11,color:C.sand,textAlign:"center"}},
               cf.sides.map(k=>dims[k]?`${k.toUpperCase()}=${dims[k]}cm`:"").filter(Boolean).join(" · "),
@@ -625,9 +635,10 @@ function App() {
           React.createElement('div',{style:{display:"flex",gap:6,marginBottom:"1rem",flexWrap:"wrap"}},
             FABRIC_CATEGORY_OPTIONS.map(cat=>
               React.createElement('button',{key:cat.key,onClick:()=>setFabFilter(cat.key),
-                style:{padding:"5px 12px",fontSize:11,cursor:"pointer",letterSpacing:"0.08em",
-                  textTransform:"uppercase",border:`1.5px solid ${fabFilter===cat.key?C.sand:"rgba(184,155,114,.2)"}`,
-                  background:fabFilter===cat.key?C.sand:"transparent",color:fabFilter===cat.key?C.bark:C.mid}},
+                style:{padding:"7px 12px",fontSize:11,cursor:"pointer",letterSpacing:"0.08em",
+                  textTransform:"uppercase",fontWeight:500,borderRadius:2,
+                  border:`1px solid ${fabFilter===cat.key?C.sand:"rgba(26,26,26,.12)"}`,
+                  background:fabFilter===cat.key?C.sand:"transparent",color:fabFilter===cat.key?C.chalk:C.mid}},
                 cat.label
               )
             )
@@ -642,8 +653,8 @@ function App() {
                 target:"_blank",
                 style:{display:"flex",alignItems:"center",gap:6,
                   background:"transparent",border:"1.5px solid "+C.sand,
-                  color:C.bark,padding:"6px 14px",fontSize:11,fontWeight:600,
-                  letterSpacing:"0.08em",textTransform:"uppercase",
+                  color:C.bark,padding:"8px 14px",fontSize:11,fontWeight:500,borderRadius:2,
+                  letterSpacing:"0.04em",textTransform:"uppercase",
                   textDecoration:"none",whiteSpace:"nowrap"}},
                 "✉ Muster anfordern"
               )
@@ -656,7 +667,7 @@ function App() {
 
           // Fabric list
           React.createElement('div',{style:{display:"grid",gridTemplateColumns:isMobile?"1fr":"repeat(2,1fr)",gap:1,
-            background:"rgba(184,155,114,.1)",marginBottom:"1.5rem"}},
+            background:"rgba(232,228,221,.75)",marginBottom:"1.5rem",borderRadius:4,overflow:"hidden"}},
             filtered.map(f=>{
               const on = fabric===f.id;
               const detailsOpen = expandedFabricId===f.id;
@@ -689,7 +700,7 @@ function App() {
                       style:{fontSize:10,letterSpacing:'0.15em',textTransform:'uppercase',color:C.sand,marginBottom:4}
                     },'Stoffdetails'),
                     React.createElement('div',{
-                      style:{fontFamily:'Georgia,serif',fontWeight:300,fontSize:'1.35rem',color:C.bark}
+                      style:{fontFamily:'Inter, sans-serif',fontWeight:300,fontSize:'1.35rem',letterSpacing:'-0.03em',color:C.bark}
                     },f.n),
                     React.createElement('div',{
                       style:{fontSize:11,color:C.mid,marginTop:2}
@@ -718,7 +729,7 @@ function App() {
           title:React.createElement('span',null,"Wähle deinen",React.createElement('br'),React.createElement('em',{style:{color:C.sand,fontStyle:"italic"}},"Schaumstoff.")),
           sub:"Optional – du kannst auch nur einen Bezug ohne Schaumstoff bestellen."}),
         React.createElement('div',{style:{display:"grid",gridTemplateColumns:"1fr",gap:1,
-          background:"rgba(184,155,114,.1)",marginBottom:"1.5rem"}},
+          background:"rgba(232,228,221,.75)",marginBottom:"1.5rem",borderRadius:4,overflow:"hidden"}},
           Object.entries(FOAM_TYPES).map(([key,f])=>{
             const on=foamKey===key;
             const a=parseFloat(dims.a||0)/100,b=parseFloat(dims.b||0)/100,c=parseFloat(dims.c||0)/100;
@@ -746,7 +757,7 @@ function App() {
           })
         ),
         React.createElement('div',{style:{marginTop:"1.2rem",padding:"1rem 1.2rem",
-          background:C.linen2,border:"1px dashed rgba(184,155,114,.3)",
+          background:C.linen2,border:"1px dashed rgba(45,74,62,.18)",
           display:"flex",alignItems:"center",justifyContent:"space-between",gap:12}},
           React.createElement('div',null,
             React.createElement('div',{style:{fontSize:13,fontWeight:500,color:C.bark}},"Nur Bezug ohne Schaumstoff?"),
@@ -769,7 +780,7 @@ function App() {
           title:React.createElement('span',null,"Extras &",React.createElement('br'),React.createElement('em',{style:{color:C.sand,fontStyle:"italic"}},"Veredelungen.")),
           sub:"Alle Extras sind optional. Preise werden live berechnet."}),
         React.createElement('div',{style:{display:"grid",gridTemplateColumns:"1fr",gap:1,
-          background:"rgba(184,155,114,.1)",marginBottom:"1.5rem"}},
+          background:"rgba(232,228,221,.75)",marginBottom:"1.5rem",borderRadius:4,overflow:"hidden"}},
           EXTRAS.map(e=>React.createElement('div',{key:e.id,
             onClick:()=>setExtras(x=>({...x,[e.id]:!x[e.id]})),
             style:{background:extras[e.id]?C.linen2:C.chalk,padding:"0.9rem 1.2rem",cursor:"pointer",
@@ -836,7 +847,7 @@ function App() {
           React.createElement(SH,{n:6,
             title:React.createElement('span',null,"Deine Konfiguration",React.createElement('br'),React.createElement('em',{style:{color:C.sand,fontStyle:"italic"}},"im Überblick.")),
             sub:"Alles korrekt? Dann füge dein individuelles Polster dem Warenkorb hinzu."}),
-          React.createElement('div',{style:{background:C.chalk,border:"1px solid rgba(184,155,114,.2)",marginBottom:"1.5rem"}},
+          React.createElement('div',{style:{background:C.chalk,border:"1px solid rgba(0,0,0,.06)",marginBottom:"1.5rem",borderRadius:4,boxShadow:"0 20px 40px rgba(0,0,0,.04)",overflow:"hidden"}},
             React.createElement('div',{style:{padding:"1.2rem 1.4rem",borderBottom:"1px solid rgba(184,155,114,.1)"}},
               React.createElement('div',{style:{fontSize:10,letterSpacing:"0.15em",textTransform:"uppercase",color:C.sand,marginBottom:"0.8rem"}},"Form & Maße"),
               React.createElement('div',{style:{display:"flex",alignItems:"center",gap:"1.5rem"}},
@@ -903,9 +914,9 @@ function App() {
               ),
               React.createElement('div',{style:{display:"flex",justifyContent:"space-between",alignItems:"baseline",marginTop:"0.5rem"}},
                 React.createElement('span',{style:{fontSize:13,fontWeight:600,color:C.bark}},"Gesamt"),
-                React.createElement('span',{style:{fontSize:20,fontWeight:300,color:C.sand,fontFamily:"Georgia,serif"}},fmt(prices.total+shipping))
+                React.createElement('span',{style:{fontSize:20,fontWeight:300,color:C.sand,fontFamily:"Inter, sans-serif",letterSpacing:"-0.03em"}},fmt(prices.total+shipping))
               ),
-              React.createElement('div',{style:{fontSize:10,color:C.mid,marginTop:3}},"inkl. 19% MwSt.")
+              React.createElement('div',{style:{fontSize:10,color:C.mid,marginTop:3}},"inkl. 19% MwSt. zzgl. Versand")
             )
           ),
           cartError&&React.createElement('div',{style:{background:"rgba(180,60,60,.1)",
@@ -924,10 +935,10 @@ function App() {
           React.createElement('button',{
             onClick:cartLoading?null:handleAddToCart,
             disabled:cartLoading,
-            style:{width:"100%",background:cartLoading?"rgba(184,155,114,.4)":C.sand,
-              color:C.bark,border:"none",padding:"18px 32px",fontSize:15,fontWeight:600,
+            style:{width:"100%",background:cartLoading?"rgba(45,74,62,.25)":C.sand,
+              color:C.chalk,border:"none",padding:"18px 32px",fontSize:15,fontWeight:500,
               cursor:cartLoading?"not-allowed":"pointer",
-              letterSpacing:"0.1em",textTransform:"uppercase",
+              letterSpacing:"0.04em",
               display:"flex",alignItems:"center",justifyContent:"center",gap:10}},
             cartLoading
               ? React.createElement('span',null,"⏳ Wird hinzugefügt...")
@@ -946,24 +957,24 @@ function App() {
     }
   };
 
-  return React.createElement('div',{style:{display:"flex",flexDirection:isMobile?"column":"row",alignItems:isMobile?"stretch":"flex-start",minHeight:"100vh",height:"auto",background:C.linen,color:C.bark,overflow:"visible"}},
+  return React.createElement('div',{style:{display:"flex",flexDirection:isMobile?"column":"row",alignItems:isMobile?"stretch":"flex-start",minHeight:"100vh",height:"auto",background:"linear-gradient(135deg, #FAFAF9 0%, #F5F3F0 100%)",color:C.bark,overflow:"visible"}},
     // Main content
-    React.createElement('div',{ref:mainContentRef,style:{flex:1,padding:isMobile?"1.5rem 1.2rem 2rem":"2.5rem 3.5rem 4rem",overflow:"visible",minWidth:0}},
+    React.createElement('div',{ref:mainContentRef,style:{flex:1,padding:isMobile?"1.5rem 1.2rem 2rem":"3rem 4.5rem 4.5rem",overflow:"visible",minWidth:0}},
       success
         ? React.createElement('div',{style:{textAlign:"center",padding:"5rem 2rem",maxWidth:500,margin:"0 auto"}},
             React.createElement('div',{style:{width:64,height:64,borderRadius:"50%",
               background:"rgba(76,94,72,.15)",border:"2px solid "+C.moss,
               display:"flex",alignItems:"center",justifyContent:"center",
               fontSize:28,margin:"0 auto 1.5rem"}},"✓"),
-            React.createElement('h2',{style:{fontFamily:"Georgia,serif",fontWeight:300,
+            React.createElement('h2',{style:{fontFamily:"Inter, sans-serif",fontWeight:300,letterSpacing:"-0.03em",
               fontSize:"2rem",color:C.bark,marginBottom:"0.8rem"}},"Zum Warenkorb hinzugefügt!"),
             React.createElement('p',{style:{color:C.mid,fontSize:14,lineHeight:1.8,marginBottom:"2rem"}},
               "Dein individuelles Polster wurde erfolgreich in den Warenkorb gelegt."),
             React.createElement('button',{
               onClick:()=>{setSuccess(false);setStep(0);setFormId("rechteck");setDims({});
                 setFabric(null);setFoamKey("none");setExtras({rz:true});setOrder({});},
-              style:{background:C.bark,color:C.chalk,padding:"12px 32px",border:"none",
-                cursor:"pointer",fontSize:12,letterSpacing:"0.1em",textTransform:"uppercase"}},
+              style:{background:C.sand,color:C.chalk,padding:"12px 32px",border:"none",
+                cursor:"pointer",fontSize:13,letterSpacing:"0.02em",borderRadius:2}},
               "Neue Konfiguration starten"
             )
           )
@@ -978,7 +989,7 @@ function App() {
                   background:i===step?C.sand:i<step?"rgba(184,155,114,.3)":"transparent",
                   border:`1.5px solid ${i<=step?C.sand:"rgba(184,155,114,.25)"}`,
                   display:"flex",alignItems:"center",justifyContent:"center",
-                  fontSize:10,fontWeight:700,color:i===step?C.bark:i<step?C.sand:C.mid,
+                  fontSize:10,fontWeight:700,color:i===step?C.chalk:i<step?C.sand:C.mid,
                   flexShrink:0}},i<step?"✓":i+1),
                 React.createElement('span',{style:{fontSize:11,letterSpacing:"0.08em",textTransform:"uppercase",
                   color:i===step?C.bark:C.mid,whiteSpace:"nowrap"}},s),
@@ -988,14 +999,14 @@ function App() {
             renderStep(),
             React.createElement('div',{style:{display:"flex",justifyContent:"space-between",marginTop:"2rem",gap:12}},
               step>0&&React.createElement('button',{onClick:()=>go(step-1),
-                style:{background:"transparent",border:"1.5px solid rgba(184,155,114,.3)",color:C.mid,
-                  padding:"10px 24px",cursor:"pointer",fontSize:12,letterSpacing:"0.08em"}},
+                style:{background:"transparent",border:"1px solid rgba(26,26,26,.14)",color:C.bark,
+                  padding:"10px 24px",cursor:"pointer",fontSize:13,letterSpacing:"0.02em",borderRadius:2}},
                 "← Zurück"),
               step<5
                 ?React.createElement('button',{onClick:()=>canNext[step]&&go(step+1),disabled:!canNext[step],
-                    style:{background:canNext[step]?C.bark:"rgba(43,35,24,.3)",color:C.chalk,
+                    style:{background:canNext[step]?C.sand:"rgba(45,74,62,.25)",color:C.chalk,
                       padding:"11px 28px",border:"none",cursor:canNext[step]?"pointer":"not-allowed",
-                      fontSize:12,letterSpacing:"0.1em",textTransform:"uppercase",marginLeft:"auto"}},
+                      fontSize:13,letterSpacing:"0.02em",borderRadius:2,marginLeft:"auto"}},
                     "Weiter →")
                 :null
             )
@@ -1003,56 +1014,56 @@ function App() {
     ),
 
     // Sidebar
-    React.createElement('div',{style:{width:isMobile?"100%":360,background:C.bark,position:isMobile?"relative":"sticky",top:0,
-      alignSelf:isMobile?"stretch":"flex-start",maxHeight:isMobile?"none":"100vh",overflowY:isMobile?"visible":"auto",padding:isMobile?"1.5rem 1.2rem":"2rem 2rem",display:"flex",flexDirection:"column",
-      gap:"1rem",flexShrink:0}},
+    React.createElement('div',{style:{width:isMobile?"100%":380,background:C.linen2,position:isMobile?"relative":"sticky",top:isMobile?0:24,
+      alignSelf:isMobile?"stretch":"flex-start",maxHeight:isMobile?"none":"calc(100vh - 48px)",overflowY:isMobile?"visible":"auto",padding:isMobile?"1.5rem 1.2rem":"2rem 2rem",display:"flex",flexDirection:"column",
+      gap:"1rem",flexShrink:0,borderLeft:isMobile?"none":"1px solid rgba(0,0,0,.05)",boxShadow:isMobile?"none":"0 20px 40px rgba(0,0,0,.04)"}},
       React.createElement('div',{style:{fontSize:10,letterSpacing:"0.2em",textTransform:"uppercase",
-        color:"rgba(184,155,114,.5)",marginBottom:"0.5rem"}},"Deine Konfiguration"),
+        color:C.sand,marginBottom:"0.5rem",fontWeight:500}},"Deine Konfiguration"),
       React.createElement('div',{style:{display:"flex",alignItems:"center",gap:12,
-        padding:"0.8rem",background:"rgba(255,255,255,.04)",marginBottom:"0.5rem"}},
+        padding:"1rem",background:"rgba(255,255,255,.7)",marginBottom:"0.5rem",borderRadius:4,border:"1px solid rgba(0,0,0,.05)"}},
         React.createElement(FormPreview,{formId,size:160,style:{opacity:.9},className:"sidebar-form-preview"}),
         React.createElement('div',null,
-          React.createElement('div',{style:{fontSize:11,color:"rgba(253,250,245,.5)",marginTop:2}},cf.label)
+          React.createElement('div',{style:{fontSize:12,color:C.bark,marginTop:2,fontWeight:500}},cf.label)
         )
       ),
-      React.createElement('div',{style:{height:1,background:"rgba(184,155,114,.12)"}},),
+      React.createElement('div',{style:{height:1,background:"rgba(0,0,0,.08)"}},),
       React.createElement('div',{style:{display:"flex",flexDirection:"column",gap:6}},
         [["Bezugsstoff",fab?`${fab.n} (${fmt(fab.p)}/lm)`:"–"],
          ["Schaumstoff",foam.name],
          ["Extras",Object.entries(extras).filter(([k,v])=>v&&k!=="rz").map(([k])=>EXTRAS.find(e=>e.id===k)?.label).filter(Boolean).join(", ")||"–"]
         ].map(([k,v])=>React.createElement('div',{key:k,style:{display:"flex",justifyContent:"space-between",gap:8}},
-          React.createElement('span',{style:{fontSize:11,color:"rgba(253,250,245,.4)",flexShrink:0}},k),
-          React.createElement('span',{style:{fontSize:11,color:"rgba(253,250,245,.7)",textAlign:"right"}},v)
+          React.createElement('span',{style:{fontSize:11,color:C.mid,flexShrink:0}},k),
+          React.createElement('span',{style:{fontSize:11,color:C.bark,textAlign:"right"}},v)
         ))
       ),
-      React.createElement('div',{style:{height:1,background:"rgba(184,155,114,.12)"}},),
+      React.createElement('div',{style:{height:1,background:"rgba(0,0,0,.08)"}},),
       React.createElement('div',{style:{display:"flex",flexDirection:"column",gap:4}},
         [["Bezugsstoff",prices.fabric],["Schaumstoff",prices.foam],
          ["Wattierung",prices.wadding],["Jersey",prices.jersey],["Extras",prices.extras]
         ].filter(([,v])=>v>0).map(([k,v])=>React.createElement('div',{key:k,
           style:{display:"flex",justifyContent:"space-between"}},
-          React.createElement('span',{style:{fontSize:11,color:"rgba(253,250,245,.4)"}},k),
-          React.createElement('span',{style:{fontSize:11,color:"rgba(253,250,245,.6)"}},fmt(v))
+          React.createElement('span',{style:{fontSize:11,color:C.mid}},k),
+          React.createElement('span',{style:{fontSize:11,color:C.bark}},fmt(v))
         ))
       ),
-      prices.total>0&&React.createElement('div',{style:{height:1,background:"rgba(184,155,114,.12)"}},),
+      prices.total>0&&React.createElement('div',{style:{height:1,background:"rgba(0,0,0,.08)"}},),
       React.createElement('div',{style:{display:"flex",justifyContent:"space-between",alignItems:"center"}},
-        React.createElement('span',{style:{fontSize:11,color:"rgba(253,250,245,.4)"}},"Versand"),
-        React.createElement('span',{style:{fontSize:11,color:shipping===0?C.moss:"rgba(253,250,245,.6)"}},
+        React.createElement('span',{style:{fontSize:11,color:C.mid}},"Versand"),
+        React.createElement('span',{style:{fontSize:11,color:shipping===0?C.moss:C.bark}},
           prices.total===0?"–":shipping===0?"Kostenlos ✓":fmt(shipping))
       ),
-      React.createElement('div',{style:{height:1,background:"rgba(184,155,114,.12)"}},),
+      React.createElement('div',{style:{height:1,background:"rgba(0,0,0,.08)"}},),
       React.createElement('div',{style:{display:"flex",justifyContent:"space-between",alignItems:"baseline"}},
         React.createElement('span',{style:{fontSize:11,letterSpacing:"0.12em",textTransform:"uppercase",
-          color:"rgba(253,250,245,.4)"}},"Gesamt"),
-        React.createElement('span',{style:{fontSize:22,fontWeight:300,color:prices.total>0?C.sand:"rgba(253,250,245,.2)",
-          fontFamily:"Georgia,serif"}},prices.total>0?fmt(prices.total+shipping):"–")
+          color:C.mid}},"Gesamt"),
+        React.createElement('span',{style:{fontSize:24,fontWeight:300,color:prices.total>0?C.sand:C.mid,
+          fontFamily:"Inter, sans-serif",letterSpacing:"-0.03em"}},prices.total>0?fmt(prices.total+shipping):"–")
       ),
       React.createElement('div',{style:{marginTop:"auto",display:"flex",flexDirection:"column",gap:4}},
         ["OEKO-TEX® zertifiziert","±2 mm Präzision","Made in Germany","Kostenlose Muster"].map(t=>
-          React.createElement('div',{key:t,style:{fontSize:10,color:"rgba(253,250,245,.3)",
+          React.createElement('div',{key:t,style:{fontSize:10,color:C.mid,
             display:"flex",alignItems:"center",gap:5}},
-            React.createElement('span',{style:{color:C.sand,flexShrink:0}},"✓"),t
+            React.createElement('span',{style:{color:C.sand2,flexShrink:0}},"✓"),t
           )
         )
       )
