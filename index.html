@@ -256,7 +256,7 @@ const DimInput = ({label,value,onChange,isPrice,hint}) => {
       color:isPrice?C.sand:C.mid,display:"flex",alignItems:"center",gap:6}},
       React.createElement('span',{style:{width:20,height:20,
         background:isPrice?C.sand:"rgba(184,155,114,.25)",
-        color:isPrice?C.bark:C.mid,borderRadius:2,display:"inline-flex",
+        color:isPrice?C.chalk:C.mid,borderRadius:2,display:"inline-flex",
         alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:700,flexShrink:0}},
         label.toUpperCase()
       ),
@@ -287,7 +287,7 @@ const FabricPreview = ({fabric, size=56}) => {
   if (!src) {
     return React.createElement('div',{style:{
       width:size,height:size,flexShrink:0,
-      background:"rgba(184,155,114,.2)",border:"1px solid rgba(0,0,0,.08)",
+      background:"rgba(45,74,62,.12)",border:"1px solid rgba(0,0,0,.08)",
       display:"flex",alignItems:"center",justifyContent:"center",fontSize:Math.round(size*0.42),
       color:C.mid
     }},"🎨");
@@ -301,7 +301,7 @@ const FabricPreview = ({fabric, size=56}) => {
     onError:()=>setIdx(current => current + 1 < candidates.length ? current + 1 : current),
     style:{
       width:size,height:size,flexShrink:0,display:"block",objectFit:"cover",
-      background:"rgba(184,155,114,.08)",border:"1px solid rgba(0,0,0,.08)"
+      background:"rgba(45,74,62,.06)",border:"1px solid rgba(0,0,0,.08)"
     }
   });
 };
@@ -848,7 +848,7 @@ function App() {
             title:React.createElement('span',null,"Deine Konfiguration",React.createElement('br'),React.createElement('em',{style:{color:C.sand,fontStyle:"italic"}},"im Überblick.")),
             sub:"Alles korrekt? Dann füge dein individuelles Polster dem Warenkorb hinzu."}),
           React.createElement('div',{style:{background:C.chalk,border:"1px solid rgba(0,0,0,.06)",marginBottom:"1.5rem",borderRadius:4,boxShadow:"0 20px 40px rgba(0,0,0,.04)",overflow:"hidden"}},
-            React.createElement('div',{style:{padding:"1.2rem 1.4rem",borderBottom:"1px solid rgba(184,155,114,.1)"}},
+            React.createElement('div',{style:{padding:"1.2rem 1.4rem",borderBottom:"1px solid rgba(0,0,0,.08)"}},
               React.createElement('div',{style:{fontSize:10,letterSpacing:"0.15em",textTransform:"uppercase",color:C.sand,marginBottom:"0.8rem"}},"Form & Maße"),
               React.createElement('div',{style:{display:"flex",alignItems:"center",gap:"1.5rem"}},
                 React.createElement(FormPreview,{formId,size:80,style:{flexShrink:0}}),
@@ -856,14 +856,14 @@ function App() {
                   React.createElement('div',{style:{fontSize:14,fontWeight:500,color:C.bark,marginBottom:6}},cf.label),
                   React.createElement('div',{style:{display:"flex",flexWrap:"wrap",gap:6}},
                     cf.sides.map(k=>dims[k]&&React.createElement('span',{key:k,
-                      style:{background:"rgba(184,155,114,.12)",padding:"3px 8px",fontSize:12,color:C.bark}},
+                      style:{background:"rgba(45,74,62,.1)",padding:"3px 8px",fontSize:12,color:C.bark,borderRadius:2}},
                       `${k.toUpperCase()} = ${dims[k]} cm`
                     ))
                   )
                 )
               )
             ),
-            fab&&React.createElement('div',{style:{padding:"1rem 1.4rem",borderBottom:"1px solid rgba(184,155,114,.1)",
+            fab&&React.createElement('div',{style:{padding:"1rem 1.4rem",borderBottom:"1px solid rgba(0,0,0,.08)",
               display:"flex",alignItems:"center",justifyContent:"space-between"}},
               React.createElement('div',null,
                 React.createElement('div',{style:{fontSize:10,letterSpacing:"0.15em",textTransform:"uppercase",color:C.sand,marginBottom:4}},"Bezugsstoff"),
@@ -874,7 +874,7 @@ function App() {
               ),
               React.createElement('span',{style:{fontSize:13,color:C.sand,fontWeight:500}},`${fab.p.toFixed(2)} €/lm`)
             ),
-            React.createElement('div',{style:{padding:"1rem 1.4rem",borderBottom:"1px solid rgba(184,155,114,.1)",
+            React.createElement('div',{style:{padding:"1rem 1.4rem",borderBottom:"1px solid rgba(0,0,0,.08)",
               display:"flex",justifyContent:"space-between",alignItems:"center"}},
               React.createElement('div',null,
                 React.createElement('div',{style:{fontSize:10,letterSpacing:"0.15em",textTransform:"uppercase",color:C.sand,marginBottom:4}},"Schaumstoff"),
@@ -882,14 +882,14 @@ function App() {
               ),
               foam.density>0&&React.createElement('span',{style:{fontSize:12,color:C.mid}},`${foam.density} kg/m³`)
             ),
-            React.createElement('div',{style:{padding:"1rem 1.4rem",borderBottom:"1px solid rgba(184,155,114,.1)"}},
+            React.createElement('div',{style:{padding:"1rem 1.4rem",borderBottom:"1px solid rgba(0,0,0,.08)"}},
               React.createElement('div',{style:{fontSize:10,letterSpacing:"0.15em",textTransform:"uppercase",color:C.sand,marginBottom:6}},"Extras"),
               React.createElement('div',{style:{display:"flex",flexWrap:"wrap",gap:6}},
                 EXTRAS.map(e=>React.createElement('span',{key:e.id,
                   style:{padding:"3px 10px",fontSize:12,
-                    background:extras[e.id]?"rgba(184,155,114,.15)":"rgba(184,155,114,.04)",
+                    background:extras[e.id]?"rgba(45,74,62,.12)":"rgba(45,74,62,.04)",
                     color:extras[e.id]?C.bark:C.mid,
-                    border:`1px solid ${extras[e.id]?"rgba(184,155,114,.3)":"rgba(184,155,114,.1)"}`}},
+                    border:`1px solid ${extras[e.id]?"rgba(45,74,62,.24)":"rgba(0,0,0,.08)"}`,borderRadius:2}},
                   e.label
                 ))
               )
@@ -906,7 +906,7 @@ function App() {
                   )
                 )
               ),
-              React.createElement('div',{style:{height:1,background:"rgba(184,155,114,.15)",margin:"0.8rem 0"}},),
+              React.createElement('div',{style:{height:1,background:"rgba(0,0,0,.08)",margin:"0.8rem 0"}},),
               React.createElement('div',{style:{display:"flex",justifyContent:"space-between",alignItems:"baseline"}},
                 React.createElement('span',{style:{fontSize:11,color:C.mid}},"Versand"),
                 React.createElement('span',{style:{fontSize:12,color:shipping===0?C.moss:C.bark}},
@@ -947,9 +947,7 @@ function App() {
                   "In den Warenkorb"
                 )
           ),
-          React.createElement(Tip,null,
-            "Du wirst nach dem Klick zum Wix-Warenkorb weitergeleitet, wo du Lieferadresse und Zahlung eingibst."
-          )
+          null
         );
       }
 
