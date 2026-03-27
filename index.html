@@ -424,7 +424,7 @@ function App() {
   const [extras,     setExtras]    = useState({rz:true});
   const [success,    setSuccess]   = useState(false);
   const [order,      setOrder]     = useState({fn:"",ln:"",email:"",phone:"",addr:"",pay:"",note:""});
-  const [lightboxFab, setLightboxFab] = useState(null);
+  const [expandedFabricId, setExpandedFabricId] = useState(null);
   const mainContentRef = useRef(null);
 
   useEffect(()=>{
@@ -526,9 +526,36 @@ function App() {
   }, [step]);
   const setDim=(k,v)=>setDims(d=>({...d,[k]:v}));
 
-  const openLightbox = useCallback((e, fab) => {
+  const toggleFabricDetails = useCallback((e, fabId) => {
     e.stopPropagation();
-    setLightboxFab(fab);
+    setExpandedFabricId(current => current === fabId ? null : fabId);
+  }, []);
+
+  const renderFabricDetailRows = useCallback((fabricData) => {
+    const entries = Object.entries(fabricData?.props || {}).filter(([,v]) => v && v !== 'NaN');
+    if (!entries.length) {
+      return React.createElement('p', {
+        style: {fontSize: 13, color: C.mid}
+      }, 'Keine weiteren Eigenschaften hinterlegt.');
+    }
+    return entries.map(([key, val]) =>
+      React.createElement('div', {
+        key,
+        style: {display: 'flex', gap: 10, alignItems: 'flex-start'}
+      },
+        React.createElement('span', {
+          style: {fontSize: 14, flexShrink: 0, width: 22}
+        }, PROP_ICONS[key] || '•'),
+        React.createElement('div', null,
+          React.createElement('div', {
+            style: {fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase', color: C.mid, marginBottom: 1}
+          }, PROP_LABELS[key] || key),
+          React.createElement('div', {
+            style: {fontSize: 13, color: C.bark}
+          }, String(val))
+        )
+      )
+    );
   }, []);
 
   const renderStep=()=>{
@@ -632,25 +659,53 @@ function App() {
             background:"rgba(184,155,114,.1)",marginBottom:"1.5rem"}},
             filtered.map(f=>{
               const on = fabric===f.id;
+              const detailsOpen = expandedFabricId===f.id;
               const fp = prices.surface>0 ? Math.max(47.99,Math.round(prices.surface*f.p*100)/100) : null;
-              return React.createElement('div',{key:f.id,onClick:()=>setFabric(f.id),
-                style:{background:on?C.linen2:C.chalk,padding:"0.9rem 1rem",cursor:"pointer",
-                  border:`2px solid ${on?C.sand:"transparent"}`,transition:"all .2s",
-                  display:"flex",alignItems:"center",gap:10}},
-                React.createElement(FabricPreview,{fabric:f,size:52}),
-                React.createElement('div',{style:{flex:1,minWidth:0}},
-                  React.createElement('div',{style:{fontSize:12,fontWeight:on?500:300,color:C.bark,
-                    whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}},f.n),
-                  React.createElement('div',{style:{fontSize:11,color:C.mid,marginTop:1}},
-                    `${f.p.toFixed(2)} €/lm`)
+              return React.createElement('div',{key:f.id,
+                style:{background:on?C.linen2:C.chalk,
+                  border:`2px solid ${on?C.sand:"transparent"}`,transition:"all .2s"}},
+                React.createElement('div',{onClick:()=>setFabric(f.id),
+                  style:{padding:"0.9rem 1rem",cursor:"pointer",display:"flex",alignItems:"center",gap:10}},
+                  React.createElement(FabricPreview,{fabric:f,size:52}),
+                  React.createElement('div',{style:{flex:1,minWidth:0}},
+                    React.createElement('div',{style:{fontSize:12,fontWeight:on?500:300,color:C.bark,
+                      whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}},f.n),
+                    React.createElement('div',{style:{fontSize:11,color:C.mid,marginTop:1}},
+                      `${f.p.toFixed(2)} €/lm`)
+                  ),
+                  fp&&React.createElement('div',{style:{fontSize:12,color:on?C.sand:C.mid,
+                    fontWeight:on?600:300,flexShrink:0}},fmt(fp)),
+                  React.createElement('button',{
+                    className:"info-btn",
+                    onClick:(e)=>toggleFabricDetails(e,f.id),
+                    title:"Stoffeigenschaften anzeigen",
+                    "aria-expanded":detailsOpen
+                  },"ℹ")
                 ),
-                fp&&React.createElement('div',{style:{fontSize:12,color:on?C.sand:C.mid,
-                  fontWeight:on?600:300,flexShrink:0}},fmt(fp)),
-                React.createElement('button',{
-                  className:"info-btn",
-                  onClick:(e)=>openLightbox(e,f),
-                  title:"Stoffeigenschaften anzeigen"
-                },"ℹ")
+                detailsOpen&&React.createElement('div',{
+                  style:{padding:"0 1rem 1rem",borderTop:"1px solid rgba(184,155,114,.15)"}}, 
+                  React.createElement('div',{style:{paddingTop:"0.9rem",marginBottom:"1rem"}},
+                    React.createElement('div',{
+                      style:{fontSize:10,letterSpacing:'0.15em',textTransform:'uppercase',color:C.sand,marginBottom:4}
+                    },'Stoffdetails'),
+                    React.createElement('div',{
+                      style:{fontFamily:'Georgia,serif',fontWeight:300,fontSize:'1.35rem',color:C.bark}
+                    },f.n),
+                    React.createElement('div',{
+                      style:{fontSize:11,color:C.mid,marginTop:2}
+                    },`${getFabricCategoryLabel(f)} · ${fmt(Number(f.p || 0))}/lm`)
+                  ),
+                  React.createElement('div',{style:{marginBottom:"1rem"}},
+                    React.createElement(FabricPreview,{fabric:f,size:300})
+                  ),
+                  React.createElement('div',{style:{display:'flex',flexDirection:'column',gap:10,marginBottom:'1rem'}},
+                    ...renderFabricDetailRows(f)
+                  ),
+                  React.createElement('div',{className:"color-warning",style:{marginBottom:0}},
+                    React.createElement('span',null,"⚠️"),
+                    React.createElement('span',null,"Abhängig von der Art und den Einstellungen des Bildschirms können die Farbtöne der Stoffe vom realen Produkt abweichen.")
+                  )
+                )
               );
             })
           ),
@@ -892,10 +947,6 @@ function App() {
   };
 
   return React.createElement('div',{style:{display:"flex",flexDirection:isMobile?"column":"row",alignItems:isMobile?"stretch":"flex-start",minHeight:"100vh",height:"auto",background:C.linen,color:C.bark,overflow:"visible"}},
-    
-    // Lightbox
-    lightboxFab && React.createElement(FabricLightbox, {fabric:lightboxFab, onClose:()=>setLightboxFab(null)}),
-
     // Main content
     React.createElement('div',{ref:mainContentRef,style:{flex:1,padding:isMobile?"1.5rem 1.2rem 2rem":"2.5rem 3.5rem 4rem",overflow:"visible",minWidth:0}},
       success
