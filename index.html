@@ -432,6 +432,7 @@ function App() {
   const [fabric,     setFabric]    = useState(null);
   const [fabFilter,  setFabFilter] = useState("calima");
   const [extras,     setExtras]    = useState({rz:true});
+  const [cartAck,    setCartAck]   = useState(false);
   const [success,    setSuccess]   = useState(false);
   const [order,      setOrder]     = useState({fn:"",ln:"",email:"",phone:"",addr:"",pay:"",note:""});
   const [expandedFabricId, setExpandedFabricId] = useState(null);
@@ -934,10 +935,11 @@ function App() {
           ),
           React.createElement('button',{
             onClick:cartLoading?null:handleAddToCart,
-            disabled:cartLoading,
+            disabled:cartLoading||!cartAck,
             style:{width:"100%",background:cartLoading?"rgba(45,74,62,.25)":C.sand,
               color:C.chalk,border:"none",padding:"18px 32px",fontSize:15,fontWeight:500,
-              cursor:cartLoading?"not-allowed":"pointer",
+              cursor:(cartLoading||!cartAck)?"not-allowed":"pointer",
+              opacity:cartAck?1:.6,
               letterSpacing:"0.04em",
               display:"flex",alignItems:"center",justifyContent:"center",gap:10}},
             cartLoading
@@ -946,6 +948,55 @@ function App() {
                   React.createElement('span',null,"🛒"),
                   "In den Warenkorb"
                 )
+          ),
+          React.createElement('div',{style:{
+            marginTop:"1rem",background:"rgba(255,255,255,.76)",border:"1px solid rgba(0,0,0,.08)",
+            borderRadius:4,padding:"1rem 1rem 0.9rem"
+          }},
+            React.createElement('div',{style:{
+              maxHeight:260,overflowY:"auto",paddingRight:"0.4rem",marginBottom:"0.9rem",
+              fontSize:12,lineHeight:1.7,color:C.mid
+            }},
+              React.createElement('div',{style:{fontSize:13,fontWeight:600,color:C.bark,marginBottom:"0.5rem"}},
+                "Hinweise zur Kenntnisnahme"
+              ),
+              React.createElement('p',{style:{marginBottom:"0.8rem"}},
+                React.createElement('strong',null,"Zusätzliche Materialverlängerung – Für Breiten über 140 cm"),
+                React.createElement('br'),
+                "Bei Produkten, deren Breite das jeweilige Stoffmaß überschreitet, wird die gewünschte Breite durch das Annähen von zusätzlichem Material erreicht. Diese Lösung ermöglicht individuelle Maße ohne Abstriche bei Qualität, Stabilität oder optischer Harmonie."
+              ),
+              React.createElement('p',{style:{marginBottom:"0.8rem"}},
+                "Produkte mit einer Breite über dem jeweiligen Stoffmaß profitieren dadurch von Flexibilität, präziser Verarbeitung und einer sauberen Integration der Verlängerung in das Gesamtbild."
+              ),
+              React.createElement('p',{style:{marginBottom:"0.8rem"}},
+                React.createElement('strong',null,"Offener Reißverschluss"),
+                React.createElement('br'),
+                "Diese Variante zeigt den Reißverschluss sichtbar und offen. Sie eignet sich für einen modernen, urbanen Look und betont den funktionalen Charakter als bewusstes Designelement."
+              ),
+              React.createElement('p',{style:{marginBottom:"0.8rem"}},
+                React.createElement('strong',null,"Verdeckter Reißverschluss"),
+                React.createElement('br'),
+                "Hier wird der Reißverschluss durch überlappendes Material verdeckt. Diese Lösung wirkt eleganter, minimalistischer und unterstützt ein nahtloses, zurückhaltendes Design."
+              ),
+              React.createElement('p',null,
+                React.createElement('strong',null,"Rutschfester Boden"),
+                React.createElement('br'),
+                "Die rutschfeste Beschichtung verbessert Stabilität, Sicherheit und Langlebigkeit. Sie wird immer auf der Seite C angebracht. Bitte berücksichtigt dies bei der Eingabe eurer Maße. Besondere Wünsche zur Positionierung bitte im Bemerkungsfeld der Bestellung angeben."
+              )
+            ),
+            React.createElement('label',{style:{
+              display:"flex",alignItems:"flex-start",gap:10,cursor:"pointer",fontSize:12,color:C.bark,lineHeight:1.6
+            }},
+              React.createElement('input',{
+                type:"checkbox",
+                checked:cartAck,
+                onChange:(e)=>setCartAck(e.target.checked),
+                style:{marginTop:3,accentColor:C.sand,flexShrink:0}
+              }),
+              React.createElement('span',null,
+                "Ich habe die Hinweise gelesen und verstanden, dass es je nach Stoffbreite, Reißverschlussart und rutschfestem Boden zu sichtbaren oder technischen Abweichungen bei der Ausführung kommen kann."
+              )
+            )
           ),
           null
         );
@@ -970,7 +1021,7 @@ function App() {
               "Dein individuelles Polster wurde erfolgreich in den Warenkorb gelegt."),
             React.createElement('button',{
               onClick:()=>{setSuccess(false);setStep(0);setFormId("rechteck");setDims({});
-                setFabric(null);setFoamKey("none");setExtras({rz:true});setOrder({});},
+                setFabric(null);setFoamKey("none");setExtras({rz:true});setCartAck(false);setOrder({});},
               style:{background:C.sand,color:C.chalk,padding:"12px 32px",border:"none",
                 cursor:"pointer",fontSize:13,letterSpacing:"0.02em",borderRadius:2}},
               "Neue Konfiguration starten"
