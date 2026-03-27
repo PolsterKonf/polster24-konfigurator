@@ -32,9 +32,14 @@ input[type=number]{-moz-appearance:textfield}
 .lightbox-box {
   background:#FDFAF5;max-width:min(420px, calc(100vw - 2rem));width:100%;padding:1.8rem;
   position:relative;box-shadow:0 8px 40px rgba(0,0,0,.3);
-  max-height:calc(100vh - 2rem);overflow-y:auto;overflow-x:hidden;
+  max-height:calc(100vh - 2rem);overflow:hidden;
+  display:flex;flex-direction:column;
   margin:0 auto;
   animation:slideUp .18s ease;
+}
+.lightbox-scroll {
+  overflow-y:auto;overflow-x:hidden;flex:1;min-height:0;
+  padding-right:.3rem;
 }
 @keyframes slideUp{from{transform:translateY(10px);opacity:0}to{transform:translateY(0);opacity:1}}
 .lightbox-close {
@@ -73,6 +78,7 @@ input[type=number]{-moz-appearance:textfield}
 @media (max-width: 768px) {
   #root { height: auto !important; }
   .lightbox-box{padding:1.1rem;max-height:calc(100vh - 1rem);max-width:calc(100vw - 1rem)}
+  .lightbox-scroll{padding-right:.1rem}
 }
 </style>
 </head>
@@ -363,42 +369,44 @@ const FabricLightbox = ({fabric, onClose}) => {
       onClick: (e) => e.stopPropagation()
     },
       React.createElement('button', {className: 'lightbox-close', onClick: onClose}, '✕'),
-      React.createElement('div', {style: {marginBottom: '1.2rem'}},
-        React.createElement(FabricPreview, {fabric, size: 300}),
-        React.createElement('div', {style: {height: 12}}),
+      React.createElement('div', {className: 'lightbox-scroll'},
+        React.createElement('div', {style: {marginBottom: '1.2rem'}},
+          React.createElement(FabricPreview, {fabric, size: 300}),
+          React.createElement('div', {style: {height: 12}}),
+          React.createElement('div', {
+            style: {fontSize: 10, letterSpacing: '0.15em', textTransform: 'uppercase', color: C.sand, marginBottom: 4}
+          }, 'Stoffdetails'),
+          React.createElement('h3', {
+            style: {fontFamily: 'Georgia,serif', fontWeight: 300, fontSize: '1.4rem', color: C.bark}
+          }, fabric?.n || 'Stoff'),
+          React.createElement('div', {
+            style: {fontSize: 11, color: C.mid, marginTop: 2}
+          }, `${getFabricCategoryLabel(fabric)} · ${fmt(Number(fabric?.p || 0))}/lm`)
+        ),
         React.createElement('div', {
-          style: {fontSize: 10, letterSpacing: '0.15em', textTransform: 'uppercase', color: C.sand, marginBottom: 4}
-        }, 'Stoffdetails'),
-        React.createElement('h3', {
-          style: {fontFamily: 'Georgia,serif', fontWeight: 300, fontSize: '1.4rem', color: C.bark}
-        }, fabric?.n || 'Stoff'),
+          style: {height: 1, background: 'rgba(184,155,114,.15)', marginBottom: '1rem'}
+        }),
         React.createElement('div', {
-          style: {fontSize: 11, color: C.mid, marginTop: 2}
-        }, `${getFabricCategoryLabel(fabric)} · ${fmt(Number(fabric?.p || 0))}/lm`)
-      ),
-      React.createElement('div', {
-        style: {height: 1, background: 'rgba(184,155,114,.15)', marginBottom: '1rem'}
-      }),
-      React.createElement('div', {
-        style: {display: 'flex', flexDirection: 'column', gap: 10}
-      }, ...detailRows),
-      React.createElement('div', {
-        style: {height: 1, background: 'rgba(184,155,114,.15)', margin: '1.2rem 0'}
-      }),
-      React.createElement('button', {
-        onClick: onClose,
-        style: {
-          width: '100%',
-          background: C.bark,
-          color: C.chalk,
-          border: 'none',
-          padding: '10px',
-          fontSize: 12,
-          letterSpacing: '0.1em',
-          textTransform: 'uppercase',
-          cursor: 'pointer'
-        }
-      }, 'Schließen')
+          style: {display: 'flex', flexDirection: 'column', gap: 10}
+        }, ...detailRows),
+        React.createElement('div', {
+          style: {height: 1, background: 'rgba(184,155,114,.15)', margin: '1.2rem 0'}
+        }),
+        React.createElement('button', {
+          onClick: onClose,
+          style: {
+            width: '100%',
+            background: C.bark,
+            color: C.chalk,
+            border: 'none',
+            padding: '10px',
+            fontSize: 12,
+            letterSpacing: '0.1em',
+            textTransform: 'uppercase',
+            cursor: 'pointer'
+          }
+        }, 'Schließen')
+      )
     )
   );
 };
