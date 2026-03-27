@@ -20,7 +20,7 @@ window.FABRIC_DATA = [{"id":"calima_1","n":"Calima 1","cat":"indoor","p":15.75,"
 html,body,#root{height:100%;width:100%}
 body{
   font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
-  background:linear-gradient(135deg,#FAFAF9 0%,#F5F3F0 100%);
+  background:linear-gradient(135deg,#FAFAF9 0%,#F2F5F2 100%);
   color:#1A1A1A;-webkit-font-smoothing:antialiased;font-size:16px;
 }
 input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
@@ -76,7 +76,7 @@ input[type=number]{-moz-appearance:textfield}
 
 /* Color warning */
 .color-warning {
-  background:rgba(232,228,221,.75);border-left:3px solid #C4A484;
+  background:rgba(45,74,62,.06);border-left:3px solid rgba(45,74,62,.32);
   padding:12px 14px;font-size:11px;color:#6B6B6B;line-height:1.7;
   margin-bottom:1rem;display:flex;gap:8px;align-items:flex-start;
 }
@@ -95,8 +95,8 @@ input[type=number]{-moz-appearance:textfield}
 const { useState, useMemo, useEffect, useCallback, useRef } = React;
 
 const C = {
-  linen:"#FAFAF9",linen2:"#F5F3F0",bark:"#1A1A1A",bark2:"#2D4A3E",
-  moss:"#3D5A4E",sand:"#2D4A3E",sand2:"#C4A484",chalk:"#FFFFFF",mid:"#6B6B6B",
+  linen:"#FAFAF9",linen2:"#F4F6F3",bark:"#1A1A1A",bark2:"#2D4A3E",
+  moss:"#3D5A4E",sand:"#2D4A3E",sand2:"#7E9488",chalk:"#FFFFFF",mid:"#6B6B6B",
 };
 const fmt = n => n.toFixed(2).replace(".",",") + " €";
 
@@ -229,7 +229,7 @@ const FOAM_PRICE_PER_KG = 22;
 // ── Components ──
 const Tip = ({children}) => (
   React.createElement('div',{style:{
-    background:"rgba(232,228,221,.72)",border:`1px solid rgba(196,164,132,.28)`,
+    background:"rgba(45,74,62,.05)",border:`1px solid rgba(45,74,62,.12)`,
     padding:"12px 14px",fontSize:12,color:C.mid,lineHeight:1.7,marginBottom:"1.2rem",
     borderRadius:4
   }},children)
@@ -1006,7 +1006,7 @@ function App() {
     }
   };
 
-  return React.createElement('div',{style:{display:"flex",flexDirection:isMobile?"column":"row",alignItems:isMobile?"stretch":"flex-start",minHeight:"100vh",height:"auto",background:"linear-gradient(135deg, #FAFAF9 0%, #F5F3F0 100%)",color:C.bark,overflow:"visible"}},
+  return React.createElement('div',{style:{display:"flex",flexDirection:isMobile?"column":"row",alignItems:isMobile?"stretch":"flex-start",minHeight:"100vh",height:"auto",background:"linear-gradient(135deg, #FAFAF9 0%, #F2F5F2 100%)",color:C.bark,overflow:"visible"}},
     // Main content
     React.createElement('div',{ref:mainContentRef,style:{flex:1,padding:isMobile?"1.5rem 1.2rem 2rem":"3rem 4.5rem 4.5rem",overflow:"visible",minWidth:0}},
       success
