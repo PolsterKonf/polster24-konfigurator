@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="de">
 <head>
 <meta charset="UTF-8"/>
@@ -51,7 +51,7 @@ input[type=number]{-moz-appearance:textfield}
   max-width:min(440px, calc(100vw - 2rem));
   width:100%;padding:2rem;
   position:relative;
-  border-radius:28px;
+  border-radius:5px;
   box-shadow:0 18px 46px rgba(23,42,32,.1),0 4px 12px rgba(23,42,32,.04);
   max-height:calc(100vh - 2rem);overflow:hidden;
   display:flex;flex-direction:column;
@@ -105,7 +105,7 @@ input[type=number]{-moz-appearance:textfield}
 .color-warning{
   background:rgba(63,102,86,.05);
   border-left:3px solid rgba(63,102,86,.18);
-  border-radius:0 12px 12px 0;
+  border-radius:0 5px 5px 0;
   padding:12px 14px;font-size:11px;color:#5C695F;line-height:1.7;
   margin-bottom:1rem;display:flex;gap:8px;align-items:flex-start;
 }
@@ -113,7 +113,7 @@ input[type=number]{-moz-appearance:textfield}
 /* â”€â”€ Mobile â”€â”€ */
 @media(max-width:768px){
   #root{height:auto !important;}
-  .lightbox-box{padding:1.2rem;max-height:calc(100vh - 1rem);max-width:calc(100vw - 1rem);border-radius:24px;}
+  .lightbox-box{padding:1.2rem;max-height:calc(100vh - 1rem);max-width:calc(100vw - 1rem);border-radius:5px;}
   .lightbox-scroll{padding-right:.1rem;}
 }
 </style>
@@ -396,7 +396,7 @@ const Tip = ({children}) => (
     background:"rgba(255,255,255,.5)",
     backdropFilter:"blur(10px)",WebkitBackdropFilter:"blur(10px)",
     border:"1px solid rgba(255,255,255,.7)",
-    borderRadius:12,
+    borderRadius:5,
     padding:"14px 16px",fontSize:12,color:C.mid,lineHeight:1.7,marginBottom:"1.2rem",
   }},children)
 );
@@ -434,7 +434,7 @@ const DimInput = ({label,value,onChange,isPrice,hint,title}) => {
         style:{width:"100%",
           background:"#FFFFFF",
           border:"1.5px solid rgba(47,107,84,.12)",
-          borderRadius:12,
+          borderRadius:5,
           padding:"14px 36px 14px 16px",
           fontSize:16,color:C.bark,outline:"none",
           boxShadow:"inset 0 1px 2px rgba(23,42,32,.04)",
@@ -745,7 +745,7 @@ function App() {
           title:React.createElement('span',null,"Wähle die ",React.createElement('em',{style:{color:C.sand,fontStyle:"italic"}},"Form"),React.createElement('br'),"deines Polsters."),
           sub:"Klicke auf die passende Form. Die Maße gibst du im nächsten Schritt ein."}),
         React.createElement('div',{style:{display:"grid",gridTemplateColumns:isMobile?"repeat(2,minmax(0,1fr))":"repeat(3,minmax(0,1fr))",gap:isMobile?12:16,
-          background:"transparent",marginBottom:"1.5rem",borderRadius:4,overflow:"visible"}},
+          background:"transparent",marginBottom:"1.5rem",borderRadius:5,overflow:"visible"}},
           FORMS.map(f=>React.createElement('div',{key:f.id,
             onClick:()=>{setFormId(f.id);setDims({});},
             style:{
@@ -753,7 +753,7 @@ function App() {
               padding:isMobile?"1.1rem .8rem":"1.4rem 1rem",
               minHeight:isMobile?null:190,
               cursor:"pointer",textAlign:"center",transition:"all .25s cubic-bezier(.4,0,.2,1)",
-              position:"relative",borderRadius:16,
+              position:"relative",borderRadius:5,
               border:`1.5px solid ${formId===f.id?"rgba(47,107,84,.32)":"rgba(47,107,84,.08)"}`,
               boxShadow:formId===f.id
                 ?"0 12px 26px rgba(47,107,84,.12)"
@@ -778,7 +778,7 @@ function App() {
             backdropFilter:"blur(16px) saturate(160%)",
             WebkitBackdropFilter:"blur(16px) saturate(160%)",
             border:"1px solid rgba(255,255,255,.72)",
-            borderRadius:20,
+            borderRadius:5,
             padding:"1.5rem",display:"flex",flexDirection:"column",alignItems:"center",
             justifyContent:"center",marginBottom:"1.5rem",gap:8,
             boxShadow:"0 8px 32px rgba(80,90,105,.1)"}},
@@ -825,7 +825,7 @@ function App() {
               React.createElement('button',{key:cat.key,onClick:()=>setFabFilter(cat.key),
                 style:{
                   padding:"9px 20px",fontSize:11,cursor:"pointer",letterSpacing:"0.08em",
-                  textTransform:"uppercase",fontWeight:500,borderRadius:50,border:"none",
+                  textTransform:"uppercase",fontWeight:500,borderRadius:5,border:"none",
                   fontFamily:"\"DM Sans\",sans-serif",
                   transition:"all .2s ease",
                   background:fabFilter===cat.key?"#3F6656":"#FFFFFF",
@@ -847,7 +847,7 @@ function App() {
                 target:"_blank",
                 style:{display:"inline-flex",alignItems:"center",gap:6,
                   background:"#FFFFFF",border:"1px solid rgba(47,107,84,.08)",
-                  color:C.bark,padding:"11px 20px",fontSize:11,fontWeight:500,borderRadius:50,
+                  color:C.bark,padding:"11px 20px",fontSize:11,fontWeight:500,borderRadius:5,
                   letterSpacing:"0.04em",textTransform:"uppercase",
                   textDecoration:"none",whiteSpace:"nowrap",
                   fontFamily:"\"DM Sans\",sans-serif",
@@ -875,7 +875,7 @@ function App() {
                   backdropFilter:on?"blur(6px)":"none",
                   WebkitBackdropFilter:on?"blur(6px)":"none",
                   border:`1.5px solid ${on?"rgba(47,107,84,.32)":"rgba(0,0,0,.06)"}`,
-                  borderRadius:16,overflow:"hidden",transition:"all .22s ease",
+                  borderRadius:5,overflow:"hidden",transition:"all .22s ease",
                   boxShadow:on
                     ?"0 10px 24px rgba(47,107,84,.1)"
                     :"0 6px 14px rgba(23,42,32,.05)"}},
@@ -945,7 +945,7 @@ function App() {
                 WebkitBackdropFilter:on?"blur(10px)":"none",
                 padding:"1.1rem 1.3rem",cursor:"pointer",
                 border:`1.5px solid ${on?"rgba(47,107,84,.32)":"rgba(47,107,84,.08)"}`,
-                borderRadius:16,transition:"all .22s ease",
+                borderRadius:5,transition:"all .22s ease",
                 display:"flex",alignItems:"center",justifyContent:"space-between",gap:12,
                 boxShadow:on
                   ?"0 10px 24px rgba(47,107,84,.1)"
@@ -971,7 +971,7 @@ function App() {
           background:"rgba(255,255,255,.9)",
           backdropFilter:"blur(8px)",WebkitBackdropFilter:"blur(8px)",
           border:"1px solid rgba(47,107,84,.08)",
-          borderRadius:18,
+          borderRadius:5,
           display:"flex",alignItems:"center",justifyContent:"space-between",gap:12,
           boxShadow:"0 12px 26px rgba(23,42,32,.06)"}},
           React.createElement('div',null,
@@ -984,7 +984,7 @@ function App() {
             onClick:()=>{setFoamKey("none");go(4);},
             style:{background:"#FFFFFF",border:"1px solid rgba(47,107,84,.08)",color:C.bark,
               padding:"11px 22px",cursor:"pointer",fontSize:12,fontWeight:600,
-              whiteSpace:"nowrap",letterSpacing:"0.05em",borderRadius:12,
+              whiteSpace:"nowrap",letterSpacing:"0.05em",borderRadius:5,
               fontFamily:"\"DM Sans\",sans-serif",
               boxShadow:"0 6px 14px rgba(23,42,32,.05)",
               transition:"all .2s ease"}},
@@ -1007,7 +1007,7 @@ function App() {
               WebkitBackdropFilter:extras[e.id]?"blur(10px)":"none",
               padding:"1.1rem 1.3rem",cursor:"pointer",
               border:`1.5px solid ${extras[e.id]?"rgba(47,107,84,.32)":"rgba(47,107,84,.08)"}`,
-              borderRadius:16,transition:"all .22s ease",
+              borderRadius:5,transition:"all .22s ease",
               display:"flex",alignItems:"center",gap:14,
               boxShadow:extras[e.id]
                 ?"0 10px 24px rgba(47,107,84,.1)"
@@ -1073,7 +1073,7 @@ function App() {
           React.createElement(SH,{n:6,
             title:React.createElement('span',null,"Deine Konfiguration",React.createElement('br'),React.createElement('em',{style:{color:C.sand,fontStyle:"italic"}},"im Überblick.")),
             sub:"Alles korrekt? Dann füge dein individuelles Polster dem Warenkorb hinzu."}),
-            React.createElement('div',{style:{background:"rgba(255,255,255,.92)",backdropFilter:"blur(8px) saturate(115%)",WebkitBackdropFilter:"blur(8px) saturate(115%)",border:"1px solid rgba(63,102,86,.08)",marginBottom:"1.5rem",borderRadius:28,boxShadow:"0 18px 40px rgba(23,42,32,.08)",overflow:"hidden"}},
+            React.createElement('div',{style:{background:"rgba(255,255,255,.92)",backdropFilter:"blur(8px) saturate(115%)",WebkitBackdropFilter:"blur(8px) saturate(115%)",border:"1px solid rgba(63,102,86,.08)",marginBottom:"1.5rem",borderRadius:5,boxShadow:"0 18px 40px rgba(23,42,32,.08)",overflow:"hidden"}},
             React.createElement('div',{style:{padding:"1.2rem 1.4rem",borderBottom:"1px solid rgba(0,0,0,.08)"}},
               React.createElement('div',{style:{fontSize:10,letterSpacing:"0.15em",textTransform:"uppercase",color:C.sand,marginBottom:"0.8rem"}},"Form & Maße"),
               React.createElement('div',{style:{display:"flex",alignItems:"center",gap:"1.5rem"}},
@@ -1160,7 +1160,7 @@ function App() {
           ),
           React.createElement('div',{style:{
             marginTop:"1rem",marginBottom:"1rem",background:"rgba(255,255,255,.82)",border:"1px solid rgba(63,102,86,.08)",
-            borderRadius:18,overflow:"hidden",boxShadow:"0 8px 20px rgba(23,42,32,.04)"
+            borderRadius:5,overflow:"hidden",boxShadow:"0 8px 20px rgba(23,42,32,.04)"
           }},
             React.createElement('button',{
               onClick:()=>setCartNoticeOpen(v=>!v),
@@ -1225,7 +1225,7 @@ function App() {
               color:C.chalk,border:"none",padding:"18px 32px",fontSize:15,fontWeight:500,
               cursor:(cartLoading||!cartAck)?"not-allowed":"pointer",
               opacity:cartAck?1:.55,
-              letterSpacing:"0.04em",borderRadius:16,
+              letterSpacing:"0.04em",borderRadius:5,
               fontFamily:"\"DM Sans\",sans-serif",
               display:"flex",alignItems:"center",justifyContent:"center",gap:10,
               boxShadow:cartAck?"0 6px 20px rgba(45,74,62,.38),inset 0 1px 0 rgba(255,255,255,.15)":"none",
@@ -1263,7 +1263,7 @@ function App() {
                 setFabric(null);setFoamKey("none");setExtras({rz:true});setCartAck(false);setOrder({});},
               style:{background:"#3F6656",color:C.chalk,
                 padding:"15px 38px",border:"none",
-                cursor:"pointer",fontSize:13,letterSpacing:"0.02em",borderRadius:14,
+                cursor:"pointer",fontSize:13,letterSpacing:"0.02em",borderRadius:5,
                 fontFamily:"\"DM Sans\",sans-serif",
                 boxShadow:"0 10px 22px rgba(63,102,86,.2)",transition:"all .2s ease"}},
               "Neue Konfiguration starten"
@@ -1298,7 +1298,7 @@ function App() {
               step>0&&React.createElement('button',{onClick:()=>go(step-1),
                 style:{background:"#FFFFFF",border:"1px solid rgba(47,107,84,.08)",color:C.bark,
                   padding:"13px 28px",cursor:"pointer",fontSize:13,letterSpacing:"0.02em",
-                  borderRadius:12,fontFamily:"\"DM Sans\",sans-serif",
+                  borderRadius:5,fontFamily:"\"DM Sans\",sans-serif",
                   boxShadow:"0 6px 14px rgba(23,42,32,.05)",
                   transition:"all .2s ease"}},
                 "← Zurück"),
@@ -1309,7 +1309,7 @@ function App() {
                       color:C.chalk,
                       padding:"13px 32px",border:"none",
                       cursor:canNext[step]?"pointer":"not-allowed",
-                      fontSize:13,letterSpacing:"0.02em",borderRadius:12,marginLeft:"auto",
+                      fontSize:13,letterSpacing:"0.02em",borderRadius:5,marginLeft:"auto",
                       fontFamily:"\"DM Sans\",sans-serif",
                       boxShadow:canNext[step]?"0 10px 22px rgba(63,102,86,.2)":"none",
                       transition:"all .22s ease"}},
@@ -1333,7 +1333,7 @@ function App() {
       React.createElement('div',{style:{fontSize:10,letterSpacing:"0.2em",textTransform:"uppercase",
         color:C.sand,marginBottom:"0.5rem",fontWeight:500}},"Deine Konfiguration"),
         React.createElement('div',{style:{display:"flex",alignItems:"center",gap:12,
-        padding:"1rem",background:"rgba(255,255,255,.76)",marginBottom:"0.5rem",borderRadius:22,border:"1px solid rgba(63,102,86,.07)",boxShadow:"0 10px 24px rgba(23,42,32,.05)"}},
+        padding:"1rem",background:"rgba(255,255,255,.76)",marginBottom:"0.5rem",borderRadius:5,border:"1px solid rgba(63,102,86,.07)",boxShadow:"0 10px 24px rgba(23,42,32,.05)"}},
         React.createElement(FormPreview,{formId,variant:"thumb",size:160,style:{opacity:.9},className:"sidebar-form-preview"}),
         React.createElement('div',null,
           React.createElement('div',{style:{fontSize:12,color:C.bark,marginTop:2,fontWeight:500}},cf.label)
