@@ -968,7 +968,6 @@ function App() {
       volume:Math.round(volume*1000000)/10};
   },[dims.a,dims.b,dims.c,dims.d,dims.e,fab,foamKey,extras,cf,pillowSummary.total]);
 
-  const shipping = prices.total>0 ? (prices.total>=99?0:9.99) : 0;
   const missingDims = cf.sides.filter(k=>!((dims[k]||"")&&parseFloat(dims[k])>0));
   const dimsOK = missingDims.length===0;
   const selectedFabricWidthCm = getFabricWidthCm(fab);
@@ -981,7 +980,6 @@ function App() {
   const finalStepBlockedReason = !cartAck
     ? "Bitte bestätige die Hinweise, bevor du die Konfiguration in den Warenkorb legst."
     : "";
-  const shippingNote = shipping===0 ? "inkl. 19% MwSt." : "inkl. 19% MwSt. zzgl. Versand";
   const getNextStepHint = () => {
     if (step === 1 && missingDims.length > 0) {
       return `Bitte ergänze noch: ${missingDims.map(key => key.toUpperCase()).join(", ")}.`;
@@ -1382,8 +1380,7 @@ function App() {
           prices.jersey>0?`• Jersey: ${fmt(prices.jersey)}`:"",
           prices.pillows>0?`• Kissen: ${fmt(prices.pillows)}`:"",
           prices.extras>0?`• Extras: ${fmt(prices.extras)}`:"",
-          `• Versand: ${shipping===0?"Kostenlos":fmt(shipping)}`,
-          `• Gesamt: ${fmt(prices.total+shipping)}`,
+          `• Gesamt: ${fmt(prices.total)}`,
         ].filter(l=>l!=="").join("\n");
 
         const handleAddToCart = async () => {
@@ -1397,8 +1394,8 @@ function App() {
             note:order.note?.trim() || "",
             pillows:pillowSummary.items.map(item => ({ size:item.label, quantity:item.qty, unitPrice:item.unitPrice, total:item.total })),
             extras:extraLabels,prices,
-            total:Math.round((prices.total+shipping)*100)/100,
-            shipping,beschreibung,
+            total:Math.round(prices.total*100)/100,
+            beschreibung,
             image:resolvedFormImage,
             pillowImage:PILLOW_IMAGE_URL,
           };
@@ -1542,15 +1539,10 @@ function App() {
               ),
               React.createElement('div',{style:{height:1,background:"rgba(0,0,0,.08)",margin:"0.8rem 0"}},),
               React.createElement('div',{style:{display:"flex",justifyContent:"space-between",alignItems:"baseline"}},
-                React.createElement('span',{style:{fontSize:11,color:C.mid}},"Versand"),
-                React.createElement('span',{style:{fontSize:12,color:shipping===0?C.moss:C.bark}},
-                  shipping===0?"Kostenlos ✓":fmt(shipping))
-              ),
-              React.createElement('div',{style:{display:"flex",justifyContent:"space-between",alignItems:"baseline",marginTop:"0.5rem"}},
                 React.createElement('span',{style:{fontSize:13,fontWeight:600,color:C.bark}},"Gesamt"),
-                React.createElement('span',{style:{fontSize:22,fontWeight:700,color:C.sand,fontFamily:"DM Sans, sans-serif",letterSpacing:"-0.03em"}},fmt(prices.total+shipping))
+                React.createElement('span',{style:{fontSize:22,fontWeight:700,color:C.sand,fontFamily:"DM Sans, sans-serif",letterSpacing:"-0.03em"}},fmt(prices.total))
               ),
-              React.createElement('div',{style:{fontSize:10,color:C.mid,marginTop:3}},shippingNote)
+              React.createElement('div',{style:{fontSize:10,color:C.mid,marginTop:3}},"inkl. 19% MwSt.")
             )
           ),
           React.createElement('div',{style:{
@@ -1837,17 +1829,11 @@ function App() {
         ))
       ),
       prices.total>0&&React.createElement('div',{style:{height:1,background:"rgba(0,0,0,.08)"}},),
-      React.createElement('div',{style:{display:"flex",justifyContent:"space-between",alignItems:"center"}},
-        React.createElement('span',{style:{fontSize:11,color:C.mid}},"Versand"),
-        React.createElement('span',{style:{fontSize:11,color:shipping===0?C.moss:C.bark}},
-          prices.total===0?"–":shipping===0?"Kostenlos ✓":fmt(shipping))
-      ),
-      React.createElement('div',{style:{height:1,background:"rgba(0,0,0,.08)"}},),
       React.createElement('div',{style:{display:"flex",justifyContent:"space-between",alignItems:"baseline"}},
         React.createElement('span',{style:{fontSize:11,letterSpacing:"0.12em",textTransform:"uppercase",
           color:C.mid}},"Gesamt"),
         React.createElement('span',{style:{fontSize:24,fontWeight:700,color:prices.total>0?C.sand:C.mid,
-          fontFamily:"DM Sans, sans-serif",letterSpacing:"-0.03em"}},prices.total>0?fmt(prices.total+shipping):PRICE_FALLBACK_LABEL)
+          fontFamily:"DM Sans, sans-serif",letterSpacing:"-0.03em"}},prices.total>0?fmt(prices.total):PRICE_FALLBACK_LABEL)
       ),
       React.createElement('div',{style:{marginTop:"auto",display:"flex",flexDirection:"column",gap:4}},
         ["±2 mm Präzision","Made in Germany","Kostenlose Muster"].map(t=>
